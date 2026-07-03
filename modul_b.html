@@ -20,7 +20,6 @@
         #rfidInput { position: absolute; opacity: 0; top: -1000px; }
         .text-glow-time { text-shadow: 0 0 40px rgba(52, 211, 153, 0.6); }
         .text-glow-return { text-shadow: 0 0 40px rgba(96, 165, 250, 0.6); }
-        
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
@@ -130,7 +129,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // UI Elements
         const leftPanel = document.getElementById('leftPanel');
         const rightPanel = document.getElementById('rightPanel');
         const rfidInput = document.getElementById('rfidInput');
@@ -141,15 +139,14 @@
         const scanAlasan = document.getElementById('scanAlasan');
         
         let splitScreenTimer; 
-        let livePopupListener = null; // Listener real-time untuk popup (alasan)
+        let livePopupListener = null; 
 
         document.onclick = () => { rfidInput.focus(); };
 
-        // 1. REAL-TIME LISTENER: MENDENGARKAN FIRESTORE (Ini menyelesaikan masalah REFRESH)
+        // 1. LISTENER PANEL KIRI (REAL-TIME SEJATI)
         onSnapshot(collection(db, "status_izin_keluar"), (snapshot) => {
             let count = 0;
-            
-            // Bersihkan list (kecuali empty state)
+            // Bersihkan list setiap ada update (kecuali empty state)
             Array.from(outList.children).forEach(child => {
                 if (child.id !== 'emptyState') child.remove();
             });
@@ -174,14 +171,10 @@
             });
 
             document.getElementById('totalOut').textContent = count;
-            if (count === 0) {
-                emptyState.style.display = 'flex';
-            } else {
-                emptyState.style.display = 'none';
-            }
+            emptyState.style.display = count === 0 ? 'flex' : 'none';
         });
 
-        // 2. TANGKAP INPUT SCAN
+        // 2. INPUT RFID
         rfidInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 const uid = this.value.trim();
@@ -190,30 +183,30 @@
             }
         });
 
-        // 3. LOGIKA SCAN KELUAR & KEMBALI
+        // 3. LOGIKA SCAN RFID KELUAR & MASUK
         async function processExitPermit(uid) {
             clearTimeout(splitScreenTimer);
-            if (livePopupListener) livePopupListener(); // Matikan listener popup sebelumnya jika ada
+            if (livePopupListener) {
+                livePopupListener(); // Matikan listener popup sebelumnya
+                livePopupListener = null;
+            }
             
             openSplitScreen();
             loadingState.classList.remove('hidden');
 
             try {
-                // Tarik Master Data
                 const userSnap = await getDoc(doc(db, "users", uid));
                 let user = userSnap.exists() ? userSnap.data() : { nama: "UID: " + uid, departemen: "Tidak Terdaftar", atasan_langsung: "-" };
 
-                // Cek apakah dia SEDANG KELUAR (di koleksi status_izin_keluar)
+                // Cek status saat ini di Firestore (Apakah sedang keluar?)
                 const statusSnap = await getDoc(doc(db, "status_izin_keluar", uid));
                 const sedangKeluar = statusSnap.exists();
 
                 loadingState.classList.add('hidden');
                 
-                // Set Waktu
                 const now = new Date();
                 const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\./g, ':');
 
-                // Update UI Kanan
                 document.getElementById('scanName').textContent = user.nama;
                 document.getElementById('scanDept').textContent = user.departemen;
                 document.getElementById('scanAtasan').textContent = user.atasan_langsung;
@@ -223,14 +216,11 @@
                 const statusContent = document.getElementById('statusContent');
 
                 if (sedangKeluar) {
-                    // --- LOGIKA KEMBALI (MASUK PLANT) ---
-                    // Hapus dari database orang yang sedang di luar
-                    await deleteDoc(doc(db, "status_izin_keluar", uid));
-                    // Jaga-jaga jika security belum sempat input, hapus juga dari antrean HP
-                    await deleteDoc(doc(db, "pending_izin", uid));
+                    // --- KEMBALI KE PABRIK ---
+                    await deleteDoc(doc(db, "status_izin_keluar", uid)); // Hapus dari layar monitor
+                    await deleteDoc(doc(db, "pending_izin", uid)); // Hapus dari antrean mobile (jika tersangkut)
                     
-                    statusContainer.classList.add('border-blue-500/50');
-                    statusContainer.classList.remove('border-emerald-500/50');
+                    statusContainer.className = "bg-slate-900/80 rounded-3xl p-6 border text-center relative overflow-hidden flex-grow flex flex-col justify-center mb-4 transition-colors border-blue-500/50";
                     statusLabel.textContent = "WAKTU KEMBALI";
                     statusLabel.className = "text-2xl font-bold tracking-widest text-blue-400 mb-1";
                     
@@ -238,27 +228,24 @@
                     statusContent.className = "text-[9rem] font-mono font-black leading-none tracking-tighter mt-2 text-blue-300 text-glow-return";
                     
                     scanAlasan.textContent = "Manpower telah kembali ke dalam area Plant.";
-                    scanAlasan.classList.replace('text-emerald-400', 'text-blue-400'); // Ganti warna teks
-                    scanAlasan.classList.replace('text-slate-300', 'text-blue-400');
+                    scanAlasan.className = "text-sm italic line-clamp-2 transition-all duration-300 text-blue-400 font-semibold";
 
-                    // Simpan ke log historis
                     await addDoc(collection(db, "logs_izin_keluar"), { uid: uid, nama: user.nama, aktivitas: "Masuk Plant", waktu: now.toISOString() });
 
                 } else {
-                    // --- LOGIKA KELUAR (MENINGGALKAN PLANT) ---
+                    // --- KELUAR PABRIK ---
                     
-                    // 1. Simpan ke status_izin_keluar (Memicu list panel kiri update otomatis)
+                    // A. Daftarkan di Monitor
                     await setDoc(doc(db, "status_izin_keluar", uid), {
                         nama: user.nama, departemen: user.departemen, waktuKeluar: timeString, catatan_alasan: ""
                     });
 
-                    // 2. PUSH KE ANTREAN HP SECURITY (INI YANG MENGHUBUNGKAN KE MOBILE APP)
+                    // B. Lempar ke Antrean Mobile
                     await setDoc(doc(db, "pending_izin", uid), {
                         nama: user.nama, departemen: user.departemen
                     });
 
-                    statusContainer.classList.add('border-emerald-500/50');
-                    statusContainer.classList.remove('border-blue-500/50');
+                    statusContainer.className = "bg-slate-900/80 rounded-3xl p-6 border text-center relative overflow-hidden flex-grow flex flex-col justify-center mb-4 transition-colors border-emerald-500/50";
                     statusLabel.textContent = "WAKTU KELUAR";
                     statusLabel.className = "text-2xl font-bold tracking-widest text-emerald-400 mb-1";
                     
@@ -266,26 +253,23 @@
                     statusContent.className = "text-[9rem] font-mono font-black leading-none tracking-tighter mt-2 text-emerald-300 text-glow-time";
                     
                     scanAlasan.textContent = "Menunggu input dari aplikasi mobile Security...";
-                    scanAlasan.classList.replace('text-blue-400', 'text-slate-300'); // Reset warna
-                    scanAlasan.classList.replace('text-emerald-400', 'text-slate-300'); 
+                    scanAlasan.className = "text-sm italic line-clamp-2 transition-all duration-300 text-slate-300";
 
-                    // 3. EFEK WOW: Pasang Live Listener hanya untuk dokumen ini agar teks alasan bisa update di pop-up!
+                    // C. Pasang Live Listener Khusus Pop-Up ini
                     livePopupListener = onSnapshot(doc(db, "status_izin_keluar", uid), (docSnap) => {
                         if (docSnap.exists()) {
                             const data = docSnap.data();
+                            // Jika ada inputan dari mobile, ubah wujud teksnya seketika!
                             if (data.catatan_alasan && data.catatan_alasan !== "") {
-                                // Jika Security berhasil input sebelum 20 detik, ubah teks alasan di layar monitor!
-                                scanAlasan.innerHTML = `<span class="font-bold">Kategori: ${data.kategori_tujuan}</span><br/>${data.catatan_alasan}`;
-                                scanAlasan.classList.replace('text-slate-300', 'text-emerald-400');
+                                scanAlasan.innerHTML = `<span class="font-bold text-xs uppercase tracking-wider">Tujuan: ${data.kategori_tujuan}</span><br/><span class="mt-1 block text-sm">${data.catatan_alasan}</span>`;
+                                scanAlasan.className = "text-sm italic line-clamp-3 transition-all duration-300 text-emerald-400";
                             }
                         }
                     });
 
-                    // Simpan ke log historis
                     await addDoc(collection(db, "logs_izin_keluar"), { uid: uid, nama: user.nama, aktivitas: "Keluar Plant", waktu: now.toISOString() });
                 }
 
-                // Jalankan Animasi Bar 20 Detik
                 timerBar.style.transition = 'none';
                 timerBar.style.transform = 'scaleX(1)';
                 setTimeout(() => {
@@ -313,7 +297,11 @@
             rightPanel.classList.add('w-0', 'opacity-0', 'scale-95');
             leftPanel.classList.remove('w-1/2');
             leftPanel.classList.add('w-full');
-            if (livePopupListener) livePopupListener(); // Matikan listener saat pop-up tutup
+            
+            if (livePopupListener) {
+                livePopupListener(); 
+                livePopupListener = null;
+            }
             rfidInput.focus();
         }
     </script>
