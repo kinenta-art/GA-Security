@@ -12,7 +12,7 @@
             100% { background-position: 0% 50%; }
         }
         .bg-animated {
-            background: linear-gradient(-45deg, #0f172a, #064e3b, #0f2027, #022c22); /* Nuansa hijau gelap untuk Modul B */
+            background: linear-gradient(-45deg, #0f172a, #064e3b, #0f2027, #022c22);
             background-size: 400% 400%;
             animation: gradientMove 15s ease infinite;
         }
@@ -20,24 +20,18 @@
         #rfidInput { position: absolute; opacity: 0; top: -1000px; }
         .text-glow-time { text-shadow: 0 0 40px rgba(52, 211, 153, 0.6); }
         .text-glow-return { text-shadow: 0 0 40px rgba(96, 165, 250, 0.6); }
-
-        /* Custom Scrollbar Premium untuk List Panel Kiri */
+        
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
     </style>
 </head>
 <body class="bg-animated h-screen w-screen flex flex-col justify-center items-center overflow-hidden font-sans text-slate-100 relative p-8">
 
-    <button onclick="window.location.href='index.html'" class="absolute top-8 left-8 w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/20 transition-all duration-300 z-50">
+    <button onclick="window.location.href='index.html'" class="absolute top-8 left-8 w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/20 transition-all z-50">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-    </button>
-
-    <button id="btnInject" class="absolute bottom-4 right-4 px-4 py-2 bg-slate-800/50 text-slate-500 text-xs rounded hover:bg-slate-700 hover:text-white transition z-50">
-        Inject Data Master
     </button>
 
     <div id="mainContainer" class="flex w-full max-w-[1400px] h-[85vh] gap-8 panel-transition">
@@ -59,7 +53,6 @@
 
                 <div class="flex-grow overflow-hidden flex flex-col">
                     <p class="text-xs font-semibold text-slate-500 tracking-widest uppercase mb-4">Daftar Manpower Keluar</p>
-                    
                     <div id="outList" class="flex-grow overflow-y-auto custom-scrollbar pr-3 space-y-3">
                         <div id="emptyState" class="h-full flex flex-col items-center justify-center text-slate-500/70">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -67,7 +60,7 @@
                             </svg>
                             <p class="text-sm uppercase tracking-widest">Seluruh MP Berada di Dalam Plant</p>
                         </div>
-                        </div>
+                    </div>
                 </div>
                 
                 <div class="mt-6 text-center">
@@ -79,8 +72,8 @@
         </div>
 
         <div id="rightPanel" class="w-0 opacity-0 scale-95 overflow-hidden bg-slate-800 border border-slate-600 rounded-[2.5rem] shadow-2xl flex flex-col relative panel-transition">
-            
             <div class="flex-grow flex flex-col justify-center p-10 relative">
+                
                 <div id="loadingState" class="absolute inset-0 bg-slate-800 z-20 flex flex-col items-center justify-center hidden">
                     <div class="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                     <p class="text-slate-400">Menyinkronkan Data...</p>
@@ -89,7 +82,6 @@
                 <div class="mb-6 whitespace-nowrap">
                     <h3 class="text-4xl font-extrabold text-white mb-2 truncate" id="scanName">-</h3>
                     <p class="text-xl text-emerald-400 font-medium tracking-wide" id="scanDept">-</p>
-                    
                     <div class="mt-4 inline-flex items-center px-4 py-2 bg-slate-700/50 rounded-lg border border-slate-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
@@ -101,17 +93,14 @@
                     </div>
                 </div>
 
-                <div id="statusContainer" class="bg-slate-900/80 rounded-3xl p-6 border text-center relative overflow-hidden flex-grow flex flex-col justify-center mb-4">
+                <div id="statusContainer" class="bg-slate-900/80 rounded-3xl p-6 border text-center relative overflow-hidden flex-grow flex flex-col justify-center mb-4 transition-colors">
                     <p id="statusLabel" class="text-lg font-bold tracking-widest uppercase mb-1">STATUS</p>
-                    
-                    <div id="statusContent" class="text-[9rem] font-mono font-black leading-none tracking-tighter mt-2">
-                        00:00
-                    </div>
+                    <div id="statusContent" class="text-[9rem] font-mono font-black leading-none tracking-tighter mt-2">00:00</div>
                 </div>
 
                 <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700">
                     <p class="text-[0.7rem] font-semibold text-slate-500 uppercase tracking-widest mb-1">Alasan Keluar</p>
-                    <p id="scanAlasan" class="text-sm text-slate-300 italic line-clamp-2">
+                    <p id="scanAlasan" class="text-sm text-slate-300 italic line-clamp-2 transition-all duration-300">
                         Menunggu input dari aplikasi mobile Security...
                     </p>
                 </div>
@@ -127,7 +116,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBbPD2u_3P_HcgHBs1uLrkXV3CKKUw64HQ",
@@ -141,10 +130,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- STATE TRANSAKSI IZIN KELUAR ---
-        let activePermits = {}; // Melacak MP yang sedang di luar: { "uid": { nama, dept, waktuKeluar } }
-
-        // --- UI ELEMENTS ---
+        // UI Elements
         const leftPanel = document.getElementById('leftPanel');
         const rightPanel = document.getElementById('rightPanel');
         const rfidInput = document.getElementById('rfidInput');
@@ -152,10 +138,50 @@
         const loadingState = document.getElementById('loadingState');
         const outList = document.getElementById('outList');
         const emptyState = document.getElementById('emptyState');
+        const scanAlasan = document.getElementById('scanAlasan');
+        
         let splitScreenTimer; 
+        let livePopupListener = null; // Listener real-time untuk popup (alasan)
 
         document.onclick = () => { rfidInput.focus(); };
 
+        // 1. REAL-TIME LISTENER: MENDENGARKAN FIRESTORE (Ini menyelesaikan masalah REFRESH)
+        onSnapshot(collection(db, "status_izin_keluar"), (snapshot) => {
+            let count = 0;
+            
+            // Bersihkan list (kecuali empty state)
+            Array.from(outList.children).forEach(child => {
+                if (child.id !== 'emptyState') child.remove();
+            });
+
+            snapshot.forEach((docSnap) => {
+                count++;
+                const data = docSnap.data();
+                
+                const card = document.createElement('div');
+                card.className = "bg-slate-800/60 border border-slate-600/50 rounded-xl p-4 flex justify-between items-center transform transition hover:bg-slate-700/60";
+                card.innerHTML = `
+                    <div>
+                        <p class="font-bold text-slate-200 truncate w-48">${data.nama}</p>
+                        <p class="text-xs text-slate-400">${data.departemen}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[0.65rem] uppercase tracking-wider text-slate-500 mb-0.5">Keluar</p>
+                        <p class="font-mono font-semibold text-emerald-400 bg-emerald-900/30 px-2 py-1 rounded">${data.waktuKeluar}</p>
+                    </div>
+                `;
+                outList.appendChild(card);
+            });
+
+            document.getElementById('totalOut').textContent = count;
+            if (count === 0) {
+                emptyState.style.display = 'flex';
+            } else {
+                emptyState.style.display = 'none';
+            }
+        });
+
+        // 2. TANGKAP INPUT SCAN
         rfidInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 const uid = this.value.trim();
@@ -164,67 +190,30 @@
             }
         });
 
-        // Fungsi memperbarui UI Daftar di Panel Kiri
-        function updateLeftPanelList() {
-            const permits = Object.values(activePermits);
-            document.getElementById('totalOut').textContent = permits.length;
-
-            if (permits.length === 0) {
-                emptyState.style.display = 'flex';
-                // Hapus semua card yang ada
-                Array.from(outList.children).forEach(child => {
-                    if (child.id !== 'emptyState') child.remove();
-                });
-            } else {
-                emptyState.style.display = 'none';
-                // Bersihkan list sebelum re-render
-                Array.from(outList.children).forEach(child => {
-                    if (child.id !== 'emptyState') child.remove();
-                });
-
-                // Generate ulang list (Terbaru di atas)
-                permits.reverse().forEach(permit => {
-                    const card = document.createElement('div');
-                    card.className = "bg-slate-800/60 border border-slate-600/50 rounded-xl p-4 flex justify-between items-center transform transition hover:bg-slate-700/60";
-                    card.innerHTML = `
-                        <div>
-                            <p class="font-bold text-slate-200 truncate w-48">${permit.nama}</p>
-                            <p class="text-xs text-slate-400">${permit.dept}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[0.65rem] uppercase tracking-wider text-slate-500 mb-0.5">Keluar</p>
-                            <p class="font-mono font-semibold text-emerald-400 bg-emerald-900/30 px-2 py-1 rounded">${permit.waktuKeluar}</p>
-                        </div>
-                    `;
-                    outList.appendChild(card);
-                });
-            }
-        }
-
+        // 3. LOGIKA SCAN KELUAR & KEMBALI
         async function processExitPermit(uid) {
             clearTimeout(splitScreenTimer);
+            if (livePopupListener) livePopupListener(); // Matikan listener popup sebelumnya jika ada
+            
             openSplitScreen();
             loadingState.classList.remove('hidden');
 
             try {
-                // 1. Ambil Data Karyawan (Master Data)
-                const docRef = doc(db, "users", uid);
-                const docSnap = await getDoc(docRef);
-                
-                let user;
-                if (docSnap.exists()) {
-                    user = docSnap.data();
-                } else {
-                    user = { nama: "UID: " + uid, departemen: "Tidak Terdaftar", atasan_langsung: "-" };
-                }
+                // Tarik Master Data
+                const userSnap = await getDoc(doc(db, "users", uid));
+                let user = userSnap.exists() ? userSnap.data() : { nama: "UID: " + uid, departemen: "Tidak Terdaftar", atasan_langsung: "-" };
+
+                // Cek apakah dia SEDANG KELUAR (di koleksi status_izin_keluar)
+                const statusSnap = await getDoc(doc(db, "status_izin_keluar", uid));
+                const sedangKeluar = statusSnap.exists();
 
                 loadingState.classList.add('hidden');
-
-                // Dapatkan Waktu Real-Time (HH:MM)
+                
+                // Set Waktu
                 const now = new Date();
                 const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\./g, ':');
 
-                // Update UI Profil
+                // Update UI Kanan
                 document.getElementById('scanName').textContent = user.nama;
                 document.getElementById('scanDept').textContent = user.departemen;
                 document.getElementById('scanAtasan').textContent = user.atasan_langsung;
@@ -232,16 +221,16 @@
                 const statusContainer = document.getElementById('statusContainer');
                 const statusLabel = document.getElementById('statusLabel');
                 const statusContent = document.getElementById('statusContent');
-                const scanAlasan = document.getElementById('scanAlasan');
 
-                statusContainer.className = "bg-slate-900/80 rounded-3xl p-6 border text-center relative overflow-hidden flex-grow flex flex-col justify-center mb-4 transition-colors duration-300";
-
-                // 2. LOGIKA KELUAR vs KEMBALI
-                if (activePermits[uid]) {
-                    // MP SEDANG KEMBALI MASUK PLANT
-                    delete activePermits[uid]; // Hapus dari daftar aktif
+                if (sedangKeluar) {
+                    // --- LOGIKA KEMBALI (MASUK PLANT) ---
+                    // Hapus dari database orang yang sedang di luar
+                    await deleteDoc(doc(db, "status_izin_keluar", uid));
+                    // Jaga-jaga jika security belum sempat input, hapus juga dari antrean HP
+                    await deleteDoc(doc(db, "pending_izin", uid));
                     
                     statusContainer.classList.add('border-blue-500/50');
+                    statusContainer.classList.remove('border-emerald-500/50');
                     statusLabel.textContent = "WAKTU KEMBALI";
                     statusLabel.className = "text-2xl font-bold tracking-widest text-blue-400 mb-1";
                     
@@ -249,39 +238,54 @@
                     statusContent.className = "text-[9rem] font-mono font-black leading-none tracking-tighter mt-2 text-blue-300 text-glow-return";
                     
                     scanAlasan.textContent = "Manpower telah kembali ke dalam area Plant.";
+                    scanAlasan.classList.replace('text-emerald-400', 'text-blue-400'); // Ganti warna teks
                     scanAlasan.classList.replace('text-slate-300', 'text-blue-400');
 
-                    await addDoc(collection(db, "logs_izin_keluar"), {
-                        uid: uid, nama: user.nama, aktivitas: "Masuk Plant", waktu: now.toISOString()
-                    });
+                    // Simpan ke log historis
+                    await addDoc(collection(db, "logs_izin_keluar"), { uid: uid, nama: user.nama, aktivitas: "Masuk Plant", waktu: now.toISOString() });
 
                 } else {
-                    // MP SEDANG KELUAR PLANT
-                    activePermits[uid] = {
-                        nama: user.nama,
-                        dept: user.departemen,
-                        waktuKeluar: timeString
-                    };
+                    // --- LOGIKA KELUAR (MENINGGALKAN PLANT) ---
                     
+                    // 1. Simpan ke status_izin_keluar (Memicu list panel kiri update otomatis)
+                    await setDoc(doc(db, "status_izin_keluar", uid), {
+                        nama: user.nama, departemen: user.departemen, waktuKeluar: timeString, catatan_alasan: ""
+                    });
+
+                    // 2. PUSH KE ANTREAN HP SECURITY (INI YANG MENGHUBUNGKAN KE MOBILE APP)
+                    await setDoc(doc(db, "pending_izin", uid), {
+                        nama: user.nama, departemen: user.departemen
+                    });
+
                     statusContainer.classList.add('border-emerald-500/50');
+                    statusContainer.classList.remove('border-blue-500/50');
                     statusLabel.textContent = "WAKTU KELUAR";
                     statusLabel.className = "text-2xl font-bold tracking-widest text-emerald-400 mb-1";
                     
                     statusContent.textContent = timeString;
                     statusContent.className = "text-[9rem] font-mono font-black leading-none tracking-tighter mt-2 text-emerald-300 text-glow-time";
                     
-                    scanAlasan.textContent = "Data alasan sedang disinkronkan atau menunggu input aplikasi mobile Pos Security.";
-                    scanAlasan.classList.replace('text-blue-400', 'text-slate-300'); // Reset color
+                    scanAlasan.textContent = "Menunggu input dari aplikasi mobile Security...";
+                    scanAlasan.classList.replace('text-blue-400', 'text-slate-300'); // Reset warna
+                    scanAlasan.classList.replace('text-emerald-400', 'text-slate-300'); 
 
-                    await addDoc(collection(db, "logs_izin_keluar"), {
-                        uid: uid, nama: user.nama, aktivitas: "Keluar Plant", waktu: now.toISOString()
+                    // 3. EFEK WOW: Pasang Live Listener hanya untuk dokumen ini agar teks alasan bisa update di pop-up!
+                    livePopupListener = onSnapshot(doc(db, "status_izin_keluar", uid), (docSnap) => {
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            if (data.catatan_alasan && data.catatan_alasan !== "") {
+                                // Jika Security berhasil input sebelum 20 detik, ubah teks alasan di layar monitor!
+                                scanAlasan.innerHTML = `<span class="font-bold">Kategori: ${data.kategori_tujuan}</span><br/>${data.catatan_alasan}`;
+                                scanAlasan.classList.replace('text-slate-300', 'text-emerald-400');
+                            }
+                        }
                     });
+
+                    // Simpan ke log historis
+                    await addDoc(collection(db, "logs_izin_keluar"), { uid: uid, nama: user.nama, aktivitas: "Keluar Plant", waktu: now.toISOString() });
                 }
 
-                // Update UI Daftar di Panel Kiri
-                updateLeftPanelList();
-
-                // 3. Jalankan Bar 20 Detik
+                // Jalankan Animasi Bar 20 Detik
                 timerBar.style.transition = 'none';
                 timerBar.style.transform = 'scaleX(1)';
                 setTimeout(() => {
@@ -309,34 +313,9 @@
             rightPanel.classList.add('w-0', 'opacity-0', 'scale-95');
             leftPanel.classList.remove('w-1/2');
             leftPanel.classList.add('w-full');
+            if (livePopupListener) livePopupListener(); // Matikan listener saat pop-up tutup
             rfidInput.focus();
         }
-
-        // --- TOMBOL INJECT DATA MASTER (Tambahan) ---
-        document.getElementById('btnInject').addEventListener('click', async () => {
-            const btn = document.getElementById('btnInject');
-            btn.textContent = "Menyimpan ke Firebase...";
-            
-            const dummyData = [
-                { uid: "111", nama: "R. A. Sugiantoro", departemen: "HRDGA Asst.Manager", izin_bawa_hp: true, atasan_langsung: "Kinenta Harsono" },
-                { uid: "222", nama: "Ari Rafiar", departemen: "GA Leader", izin_bawa_hp: true, atasan_langsung: "R. A. Sugiantoro" },
-                { uid: "333", nama: "Lala", departemen: "Staff Production", izin_bawa_hp: false, atasan_langsung: "Nia Nurazizah" },
-                { uid: "444", nama: "Irfan", departemen: "Production", izin_bawa_hp: false, atasan_langsung: "Arie Ratna Mulia" },
-                { uid: "555", nama: "Pegawai Training", departemen: "Learning & Development", izin_bawa_hp: true, atasan_langsung: "Maulana Iqbal" } // Data tambahan
-            ];
-
-            try {
-                for (const d of dummyData) {
-                    await setDoc(doc(db, "users", d.uid), {
-                        nama: d.nama, departemen: d.departemen, izin_bawa_hp: d.izin_bawa_hp, atasan_langsung: d.atasan_langsung
-                    });
-                }
-                alert("Berhasil! Data Master sudah di-inject ke Firestore.");
-                btn.classList.add('hidden');
-            } catch (error) {
-                alert("Gagal Injeksi: " + error.message);
-            }
-        });
     </script>
 </body>
 </html>
