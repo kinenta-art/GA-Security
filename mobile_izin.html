@@ -31,10 +31,6 @@
                     <p class="text-[0.65rem] text-emerald-400 font-medium tracking-widest uppercase" id="headerSubtitle">Pilih Karyawan</p>
                 </div>
             </div>
-            
-            <button id="btnInjectPending" class="text-[0.6rem] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded text-slate-300 uppercase tracking-wider transition">
-                + Data Test
-            </button>
         </header>
 
         <main id="listView" class="flex-grow overflow-y-auto p-5 pb-24 slide-left-active w-full absolute top-[72px] bottom-0">
@@ -45,7 +41,7 @@
 
             <div id="pendingListContainer" class="space-y-3">
                 <div id="emptyState" class="flex flex-col items-center justify-center h-48 text-slate-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/xl" class="w-12 h-12 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                     </svg>
                     <p class="text-sm">Tidak ada antrean input alasan.</p>
@@ -113,12 +109,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // UI Elements
         const listView = document.getElementById('listView');
         const formView = document.getElementById('formView');
         const btnBack = document.getElementById('btnBack');
         const headerTitle = document.getElementById('headerTitle');
         const headerSubtitle = document.getElementById('headerSubtitle');
-        const btnInjectPending = document.getElementById('btnInjectPending');
         const pendingListContainer = document.getElementById('pendingListContainer');
         const emptyState = document.getElementById('emptyState');
         const badgeCount = document.getElementById('badgeCount');
@@ -146,10 +142,9 @@
             btnBack.classList.remove('hidden');
             headerTitle.textContent = "Input Alasan";
             headerSubtitle.textContent = "Lengkapi Form";
-            btnInjectPending.classList.add('hidden');
         }
 
-        function closeFormView() {
+        function closeModalView() {
             inputTujuan.value = '';
             inputCatatan.value = '';
             selectedUser = null;
@@ -163,12 +158,11 @@
             btnBack.classList.add('hidden');
             headerTitle.textContent = "Antrean Izin";
             headerSubtitle.textContent = "Pilih Karyawan";
-            btnInjectPending.classList.remove('hidden');
         }
 
-        btnBack.addEventListener('click', closeFormView);
+        btnBack.addEventListener('click', closeModalView);
 
-        // 2. LISTENER ANTREAN
+        // 2. REAL-TIME LISTENER UNTUK ANTREAN INPUT
         onSnapshot(collection(db, "pending_izin"), (snapshot) => {
             let count = 0;
             Array.from(pendingListContainer.children).forEach(child => {
@@ -178,7 +172,7 @@
             snapshot.forEach((docSnap) => {
                 count++;
                 const data = docSnap.data();
-                data.uid = docSnap.id; // Pastikan UID adalah nama ID dokumen
+                data.uid = docSnap.id; 
 
                 const card = document.createElement('div');
                 card.className = "bg-slate-800/80 border border-slate-700 p-4 rounded-xl flex items-center justify-between active:scale-95 transition-transform cursor-pointer shadow-sm mb-3";
@@ -230,7 +224,7 @@
             btnSubmit.disabled = true;
 
             try {
-                // A. Simpan log rekam jejak
+                // A. Simpan log rekam jejak historis
                 await addDoc(collection(db, "alasan_izin_keluar"), {
                     uid: selectedUser.uid,
                     nama: selectedUser.nama,
@@ -240,7 +234,7 @@
                     waktu_input: new Date().toISOString()
                 });
 
-                // B. UPDATE MODUL B SECARA REAL-TIME! (Mengubah dokumen target)
+                // B. UPDATE MONITOR UTAMA SECARA LIVE
                 await setDoc(doc(db, "status_izin_keluar", selectedUser.uid), {
                     kategori_tujuan: inputTujuan.value,
                     catatan_alasan: inputCatatan.value.trim()
@@ -249,14 +243,13 @@
                 // C. Hapus dari daftar antrean
                 await deleteDoc(doc(db, "pending_izin", selectedUser.uid));
 
-                // Animasi Sukses
                 toast.classList.remove('toast-enter');
                 toast.classList.add('toast-active');
                 
                 setTimeout(() => {
                     toast.classList.remove('toast-active');
                     toast.classList.add('toast-enter');
-                    closeFormView(); 
+                    closeModalView(); 
                 }, 2000);
 
             } catch (error) {
@@ -264,30 +257,6 @@
                 alert("Gagal menyimpan data ke jaringan.");
                 btnSubmit.innerHTML = btnOriginalText;
                 validateForm();
-            }
-        });
-
-        // 4. TOMBOL INJECT DATA TEST (Versi Sempurna)
-        // Tombol ini sekarang menyuntikkan data ke *kedua* tempat, 
-        // sehingga efeknya 100% sama seperti ada orang yang tap RFID di Modul B.
-        btnInjectPending.addEventListener('click', async () => {
-            btnInjectPending.textContent = "Loading...";
-            
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\./g, ':');
-
-            try {
-                // Dummy 1: R.A. Sugiantoro
-                await setDoc(doc(db, "status_izin_keluar", "111"), { nama: "R. A. Sugiantoro", departemen: "HRDGA Asst.Manager", waktuKeluar: timeString, catatan_alasan: "" });
-                await setDoc(doc(db, "pending_izin", "111"), { nama: "R. A. Sugiantoro", departemen: "HRDGA Asst.Manager" });
-                
-                // Dummy 2: Lala
-                await setDoc(doc(db, "status_izin_keluar", "333"), { nama: "Lala", departemen: "Staff Production", waktuKeluar: timeString, catatan_alasan: "" });
-                await setDoc(doc(db, "pending_izin", "333"), { nama: "Lala", departemen: "Staff Production" });
-                
-                btnInjectPending.textContent = "+ Data Test";
-            } catch (e) {
-                alert("Gagal inject data: " + e.message);
             }
         });
     </script>
