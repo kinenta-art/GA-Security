@@ -19,7 +19,7 @@
         .panel-transition { transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
         #rfidInput { position: absolute; opacity: 0; top: -1000px; }
         .text-glow-time { text-shadow: 0 0 40px rgba(52, 211, 153, 0.6); }
-        .text-glow-return { text-shadow: 0 0 40px rgba(96, 165, 250, 0.6); }
+        
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
@@ -27,6 +27,7 @@
 </head>
 <body class="bg-animated h-screen w-screen flex flex-col justify-center items-center overflow-hidden font-sans text-slate-100 relative p-8">
 
+    <!-- Tombol Kembali -->
     <button onclick="window.location.href='index.html'" class="absolute top-8 left-8 w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/20 transition-all z-50">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
@@ -35,6 +36,7 @@
 
     <div id="mainContainer" class="flex w-full max-w-[1400px] h-[85vh] gap-8 panel-transition">
         
+        <!-- PANEL KIRI (IDLE & SUMMARY) -->
         <div id="leftPanel" class="w-full h-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] shadow-2xl flex flex-col p-10 panel-transition relative overflow-hidden">
             <div class="absolute -top-32 -right-32 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
             
@@ -70,6 +72,7 @@
             </div>
         </div>
 
+        <!-- PANEL KANAN (HASIL SCAN) -->
         <div id="rightPanel" class="w-0 opacity-0 scale-95 overflow-hidden bg-slate-800 border border-slate-600 rounded-[2.5rem] shadow-2xl flex flex-col relative panel-transition">
             <div class="flex-grow flex flex-col justify-center p-10 relative">
                 
@@ -92,12 +95,18 @@
                     </div>
                 </div>
 
+                <!-- Container Utama Status Keluar / Masuk -->
                 <div id="statusContainer" class="bg-slate-900/80 rounded-3xl p-6 border text-center relative overflow-hidden flex-grow flex flex-col justify-center mb-4 transition-colors">
                     <p id="statusLabel" class="text-lg font-bold tracking-widest uppercase mb-1">STATUS</p>
-                    <div id="statusContent" class="text-[9rem] font-mono font-black leading-none tracking-tighter mt-2">00:00</div>
+                    
+                    <!-- Konten Dinamis (Jam Raksasa / Dasbor Durasi) -->
+                    <div id="statusContent" class="mt-2 w-full">
+                        <div class="text-[9rem] font-mono font-black leading-none tracking-tighter">00:00</div>
+                    </div>
                 </div>
 
-                <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700">
+                <!-- Boks Alasan (Sembunyikan saat Masuk) -->
+                <div id="alasanBox" class="bg-slate-900/50 rounded-xl p-4 border border-slate-700">
                     <p class="text-[0.7rem] font-semibold text-slate-500 uppercase tracking-widest mb-1">Alasan Keluar</p>
                     <p id="scanAlasan" class="text-sm text-slate-300 italic line-clamp-2 transition-all duration-300">
                         Menunggu input dari aplikasi mobile Security...
@@ -137,16 +146,35 @@
         const outList = document.getElementById('outList');
         const emptyState = document.getElementById('emptyState');
         const scanAlasan = document.getElementById('scanAlasan');
+        const alasanBox = document.getElementById('alasanBox');
         
         let splitScreenTimer; 
         let livePopupListener = null; 
 
         document.onclick = () => { rfidInput.focus(); };
 
-        // 1. LISTENER PANEL KIRI (REAL-TIME SEJATI)
+        // FUNGSI HITUNG DURASI
+        function hitungDurasi(jamKeluar, jamMasuk) {
+            let [jK, mK] = jamKeluar.split(':').map(Number);
+            let [jM, mM] = jamMasuk.split(':').map(Number);
+            
+            let totalMenitKeluar = (jK * 60) + mK;
+            let totalMenitMasuk = (jM * 60) + mM;
+            
+            // Handle pergantian hari (keluar jam 23:00, masuk jam 01:00)
+            if (totalMenitMasuk < totalMenitKeluar) totalMenitMasuk += (24 * 60);
+
+            let selisih = totalMenitMasuk - totalMenitKeluar;
+            let jam = Math.floor(selisih / 60);
+            let menit = selisih % 60;
+
+            if (jam > 0) return `${jam} Jam ${menit} Mnt`;
+            return `${menit} Menit`;
+        }
+
+        // 1. LISTENER PANEL KIRI (UPDATE: Menampilkan Alasan di Tengah Card)
         onSnapshot(collection(db, "status_izin_keluar"), (snapshot) => {
             let count = 0;
-            // Bersihkan list setiap ada update (kecuali empty state)
             Array.from(outList.children).forEach(child => {
                 if (child.id !== 'emptyState') child.remove();
             });
@@ -155,16 +183,33 @@
                 count++;
                 const data = docSnap.data();
                 
+                // Siapkan template area tengah (Alasan)
+                let alasanHTML = `<p class="text-xs text-slate-500 italic animate-pulse">Menunggu input mobile...</p>`;
+                if (data.kategori_tujuan && data.kategori_tujuan !== "") {
+                    alasanHTML = `
+                        <p class="text-[0.65rem] text-emerald-400 font-bold uppercase tracking-widest truncate">${data.kategori_tujuan}</p>
+                        <p class="text-xs text-slate-300 truncate w-full">${data.catatan_alasan}</p>
+                    `;
+                }
+
                 const card = document.createElement('div');
-                card.className = "bg-slate-800/60 border border-slate-600/50 rounded-xl p-4 flex justify-between items-center transform transition hover:bg-slate-700/60";
+                card.className = "bg-slate-800/60 border border-slate-600/50 rounded-xl p-4 flex justify-between items-center transform transition hover:bg-slate-700/60 w-full";
                 card.innerHTML = `
-                    <div>
-                        <p class="font-bold text-slate-200 truncate w-48">${data.nama}</p>
-                        <p class="text-xs text-slate-400">${data.departemen}</p>
+                    <!-- Kiri: Profil -->
+                    <div class="w-2/5 flex flex-col overflow-hidden pr-2">
+                        <p class="font-bold text-slate-200 truncate">${data.nama}</p>
+                        <p class="text-[0.65rem] text-slate-400 truncate">${data.departemen}</p>
                     </div>
-                    <div class="text-right">
-                        <p class="text-[0.65rem] uppercase tracking-wider text-slate-500 mb-0.5">Keluar</p>
-                        <p class="font-mono font-semibold text-emerald-400 bg-emerald-900/30 px-2 py-1 rounded">${data.waktuKeluar}</p>
+                    
+                    <!-- Tengah: Alasan Realtime -->
+                    <div class="w-2/5 px-3 border-l border-r border-slate-600/50 flex flex-col justify-center overflow-hidden">
+                        ${alasanHTML}
+                    </div>
+
+                    <!-- Kanan: Waktu Keluar -->
+                    <div class="w-1/5 text-right pl-2">
+                        <p class="text-[0.6rem] uppercase tracking-wider text-slate-500 mb-1">Keluar</p>
+                        <p class="font-mono font-bold text-emerald-400 bg-emerald-900/30 px-1 py-0.5 rounded text-sm">${data.waktuKeluar}</p>
                     </div>
                 `;
                 outList.appendChild(card);
@@ -183,11 +228,11 @@
             }
         });
 
-        // 3. LOGIKA SCAN RFID KELUAR & MASUK
+        // 3. LOGIKA SCAN KELUAR & MASUK
         async function processExitPermit(uid) {
             clearTimeout(splitScreenTimer);
             if (livePopupListener) {
-                livePopupListener(); // Matikan listener popup sebelumnya
+                livePopupListener(); 
                 livePopupListener = null;
             }
             
@@ -198,9 +243,9 @@
                 const userSnap = await getDoc(doc(db, "users", uid));
                 let user = userSnap.exists() ? userSnap.data() : { nama: "UID: " + uid, departemen: "Tidak Terdaftar", atasan_langsung: "-" };
 
-                // Cek status saat ini di Firestore (Apakah sedang keluar?)
                 const statusSnap = await getDoc(doc(db, "status_izin_keluar", uid));
                 const sedangKeluar = statusSnap.exists();
+                let statusData = sedangKeluar ? statusSnap.data() : null;
 
                 loadingState.classList.add('hidden');
                 
@@ -214,33 +259,68 @@
                 const statusContainer = document.getElementById('statusContainer');
                 const statusLabel = document.getElementById('statusLabel');
                 const statusContent = document.getElementById('statusContent');
+                
+                // Reset timer bar color
+                timerBar.className = "h-full w-full origin-left";
 
                 if (sedangKeluar) {
-                    // --- KEMBALI KE PABRIK ---
-                    await deleteDoc(doc(db, "status_izin_keluar", uid)); // Hapus dari layar monitor
-                    await deleteDoc(doc(db, "pending_izin", uid)); // Hapus dari antrean mobile (jika tersangkut)
+                    // ==========================================
+                    // --- KEMBALI KE PABRIK (Dashboard Durasi) ---
+                    // ==========================================
+                    await deleteDoc(doc(db, "status_izin_keluar", uid)); 
+                    await deleteDoc(doc(db, "pending_izin", uid)); 
+                    
+                    const durasi = hitungDurasi(statusData.waktuKeluar, timeString);
                     
                     statusContainer.className = "bg-slate-900/80 rounded-3xl p-6 border text-center relative overflow-hidden flex-grow flex flex-col justify-center mb-4 transition-colors border-blue-500/50";
                     statusLabel.textContent = "WAKTU KEMBALI";
-                    statusLabel.className = "text-2xl font-bold tracking-widest text-blue-400 mb-1";
+                    statusLabel.className = "text-2xl font-bold tracking-widest text-blue-400 mb-2";
                     
-                    statusContent.textContent = timeString;
-                    statusContent.className = "text-[9rem] font-mono font-black leading-none tracking-tighter mt-2 text-blue-300 text-glow-return";
+                    // Dashboard Layout (Keluar - Durasi - Masuk)
+                    statusContent.innerHTML = `
+                        <div class="flex justify-between items-center bg-slate-800/80 rounded-2xl p-6 border border-slate-700 w-full shadow-inner mt-4">
+                            <div class="text-left w-1/3">
+                                <p class="text-[0.7rem] text-slate-400 uppercase tracking-widest mb-1">Jam Keluar</p>
+                                <p class="text-4xl font-mono font-bold text-emerald-400">${statusData.waktuKeluar}</p>
+                            </div>
+                            
+                            <div class="text-center w-1/3 flex flex-col items-center justify-center px-4 border-l border-r border-slate-600/50">
+                                <p class="text-[0.65rem] text-slate-400 uppercase tracking-widest mb-1.5">Total Durasi</p>
+                                <div class="bg-blue-500/20 border border-blue-500/50 px-4 py-2 rounded-xl">
+                                    <p class="text-xl font-bold text-blue-300 whitespace-nowrap">${durasi}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="text-right w-1/3">
+                                <p class="text-[0.7rem] text-slate-400 uppercase tracking-widest mb-1">Jam Masuk</p>
+                                <p class="text-4xl font-mono font-bold text-blue-400">${timeString}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Placeholder Status Kehadiran (Menunggu Mobile Update) -->
+                        <div class="mt-4 flex justify-center">
+                            <span class="inline-flex items-center gap-1.5 bg-slate-700/50 text-slate-300 px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase border border-slate-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Status Kedatangan Dicatat
+                            </span>
+                        </div>
+                    `;
                     
-                    scanAlasan.textContent = "Manpower telah kembali ke dalam area Plant.";
-                    scanAlasan.className = "text-sm italic line-clamp-2 transition-all duration-300 text-blue-400 font-semibold";
+                    // Sembunyikan boks alasan karena orangnya sudah masuk
+                    alasanBox.classList.add('hidden');
+                    timerBar.classList.add('bg-blue-500');
 
-                    await addDoc(collection(db, "logs_izin_keluar"), { uid: uid, nama: user.nama, aktivitas: "Masuk Plant", waktu: now.toISOString() });
+                    await addDoc(collection(db, "logs_izin_keluar"), { uid: uid, nama: user.nama, aktivitas: "Masuk Plant", waktu: now.toISOString(), durasi: durasi });
 
                 } else {
-                    // --- KELUAR PABRIK ---
-                    
-                    // A. Daftarkan di Monitor
+                    // ==========================================
+                    // --- KELUAR PABRIK (Jam Raksasa) ---
+                    // ==========================================
                     await setDoc(doc(db, "status_izin_keluar", uid), {
                         nama: user.nama, departemen: user.departemen, waktuKeluar: timeString, catatan_alasan: ""
                     });
-
-                    // B. Lempar ke Antrean Mobile
                     await setDoc(doc(db, "pending_izin", uid), {
                         nama: user.nama, departemen: user.departemen
                     });
@@ -249,17 +329,17 @@
                     statusLabel.textContent = "WAKTU KELUAR";
                     statusLabel.className = "text-2xl font-bold tracking-widest text-emerald-400 mb-1";
                     
-                    statusContent.textContent = timeString;
-                    statusContent.className = "text-[9rem] font-mono font-black leading-none tracking-tighter mt-2 text-emerald-300 text-glow-time";
+                    statusContent.innerHTML = `<div class="text-[9rem] font-mono font-black leading-none tracking-tighter text-emerald-300 text-glow-time">${timeString}</div>`;
                     
-                    scanAlasan.textContent = "Menunggu input dari aplikasi mobile Security...";
-                    scanAlasan.className = "text-sm italic line-clamp-2 transition-all duration-300 text-slate-300";
+                    alasanBox.classList.remove('hidden');
+                    scanAlasan.innerHTML = `Menunggu input dari aplikasi mobile Security...`;
+                    scanAlasan.className = "text-sm italic line-clamp-2 transition-all duration-300 text-slate-400";
+                    timerBar.classList.add('bg-emerald-500');
 
-                    // C. Pasang Live Listener Khusus Pop-Up ini
+                    // Live Popup Listener
                     livePopupListener = onSnapshot(doc(db, "status_izin_keluar", uid), (docSnap) => {
                         if (docSnap.exists()) {
                             const data = docSnap.data();
-                            // Jika ada inputan dari mobile, ubah wujud teksnya seketika!
                             if (data.catatan_alasan && data.catatan_alasan !== "") {
                                 scanAlasan.innerHTML = `<span class="font-bold text-xs uppercase tracking-wider">Tujuan: ${data.kategori_tujuan}</span><br/><span class="mt-1 block text-sm">${data.catatan_alasan}</span>`;
                                 scanAlasan.className = "text-sm italic line-clamp-3 transition-all duration-300 text-emerald-400";
