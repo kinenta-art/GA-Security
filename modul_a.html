@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modul A - Kontrol HP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Animasi Background Premium */
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .bg-animated {
+            background: linear-gradient(-45deg, #0f172a, #1e293b, #0f2027, #111827);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+        }
+
+        /* Transisi Layout Panel yang Mulus */
+        .panel-transition {
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Menyembunyikan input RFID */
+        #rfidInput {
+            position: absolute;
+            opacity: 0;
+            top: -1000px;
+        }
+
+        /* Efek Glow pada Nomor Loker */
+        .text-glow-loker {
+            text-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+        }
+        .text-glow-izin {
+            text-shadow: 0 0 40px rgba(34, 197, 94, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-animated h-screen w-screen flex flex-col justify-center items-center overflow-hidden font-sans text-slate-100 relative p-8">
+
+    <button onclick="window.location.href='index.html'" class="absolute top-8 left-8 w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/20 transition-all duration-300 z-50">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+    </button>
+
+    <div id="mainContainer" class="flex w-full max-w-[1400px] h-[85vh] gap-8 panel-transition">
+        
+        <div id="leftPanel" class="w-full h-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] shadow-2xl flex flex-col justify-center items-center p-12 panel-transition relative overflow-hidden">
+            <div class="absolute -top-32 -left-32 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-32 -right-32 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+
+            <div class="z-10 flex flex-col items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-blue-400/80 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                </svg>
+                <h2 class="text-2xl font-medium text-slate-300 tracking-[0.3em] mb-4 uppercase text-center">Total Penitipan HP</h2>
+                <div class="text-[8rem] font-bold text-white leading-none mb-4 tracking-tighter" id="totalHP">0</div>
+                <p class="text-slate-400 text-lg tracking-wide mb-12">Perangkat saat ini tersimpan di Loker</p>
+                
+                <div class="px-8 py-3 rounded-full bg-slate-800/50 border border-slate-600/50 animate-pulse">
+                    <p class="text-blue-300 font-semibold tracking-widest text-sm uppercase">Siap Membaca RFID ...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="rightPanel" class="w-0 opacity-0 scale-95 overflow-hidden bg-slate-800 border border-slate-600 rounded-[2.5rem] shadow-2xl flex flex-col relative panel-transition">
+            
+            <div class="flex-grow flex flex-col justify-center p-12 whitespace-nowrap">
+                <div class="mb-8">
+                    <h3 class="text-4xl font-extrabold text-white mb-2 truncate" id="scanName">NAMA KARYAWAN</h3>
+                    <p class="text-xl text-slate-400 font-medium tracking-wide" id="scanDept">Departemen</p>
+                </div>
+
+                <div id="statusContainer" class="bg-slate-900/80 rounded-3xl p-8 border text-center relative overflow-hidden">
+                    <p id="statusLabel" class="text-lg font-semibold tracking-widest uppercase mb-2">STATUS</p>
+                    
+                    <div id="statusContent" class="text-[10rem] font-black leading-none tracking-tighter">
+                        A01
+                    </div>
+                    
+                    <div id="izinIcon" class="hidden justify-center mt-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full h-2 bg-slate-700 absolute bottom-0 left-0">
+                <div id="timerBar" class="h-full bg-blue-500 w-full origin-left"></div>
+            </div>
+        </div>
+    </div>
+
+    <input type="text" id="rfidInput" autocomplete="off" autofocus>
+
+    <script>
+        // --- LOGIKA IDLE & AUTO-FOCUS ---
+        let idleToHomeTimer;
+        function resetIdleToHome() {
+            clearTimeout(idleToHomeTimer);
+            idleToHomeTimer = setTimeout(() => { window.location.href = 'index.html'; }, 5 * 60 * 1000);
+        }
+        window.onload = resetIdleToHome;
+        document.onclick = () => { rfidInput.focus(); resetIdleToHome(); };
+        
+        // --- SIMULASI DATABASE KARYAWAN ---
+        const mockDatabase = {
+            "111": { nama: "Budi Santoso", dept: "Production", izin_bawa_hp: false },
+            "222": { nama: "Siti Aisyah", dept: "HSE Manager", izin_bawa_hp: true },
+            "333": { nama: "Andi Pratama", dept: "Maintenance", izin_bawa_hp: false }
+        };
+
+        // --- STATE MANAJEMEN LOKER (Simulasi Backend Firestore) ---
+        let totalHpDititip = 0;
+        let currentLokerIndex = 0; // Mulai dari 0 untuk Loker A01
+        let activeDeposits = {}; // Menyimpan siapa yang sedang menitip HP { "111": "A01" }
+
+        // Fungsi mengubah index angka menjadi format A01-A20, B01-B20
+        function generateNomorLoker(index) {
+            const abjad = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const indexHuruf = Math.floor(index / 20); 
+            const huruf = abjad[indexHuruf] || "Z"; // Fallback ke Z jika penuh
+            let angka = (index % 20) + 1; 
+            return huruf + angka.toString().padStart(2, '0'); 
+        }
+
+        // --- LOGIKA UI & SCAN ---
+        const leftPanel = document.getElementById('leftPanel');
+        const rightPanel = document.getElementById('rightPanel');
+        const rfidInput = document.getElementById('rfidInput');
+        const timerBar = document.getElementById('timerBar');
+        
+        let splitScreenTimer; 
+
+        rfidInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const uid = this.value.trim();
+                this.value = ''; 
+                if(uid !== "") processScan(uid);
+            }
+        });
+
+        function processScan(uid) {
+            // Hentikan timer split-screen jika masih berjalan
+            clearTimeout(splitScreenTimer);
+            
+            const user = mockDatabase[uid] || { nama: "UID: " + uid, dept: "Tidak Terdaftar", izin_bawa_hp: false };
+            
+            // Elemen UI Kanan
+            const statusContainer = document.getElementById('statusContainer');
+            const statusLabel = document.getElementById('statusLabel');
+            const statusContent = document.getElementById('statusContent');
+            const izinIcon = document.getElementById('izinIcon');
+
+            document.getElementById('scanName').textContent = user.nama;
+            document.getElementById('scanDept').textContent = user.dept;
+
+            // RESET CSS STYLE
+            statusContainer.className = "bg-slate-900/80 rounded-3xl p-8 border text-center relative overflow-hidden transition-colors duration-300";
+            statusContent.className = "text-[10rem] font-black leading-none tracking-tighter";
+            izinIcon.classList.add('hidden');
+
+            // LOGIKA 1: Jika Diizinkan Membawa HP
+            if (user.izin_bawa_hp) {
+                statusContainer.classList.add('border-green-500/50');
+                statusLabel.textContent = "AKSES DIIZINKAN";
+                statusLabel.className = "text-xl font-bold tracking-widest text-green-400 mb-2";
+                
+                statusContent.textContent = "BEBAS";
+                statusContent.classList.add('text-[6rem]', 'text-green-300', 'text-glow-izin');
+                izinIcon.classList.remove('hidden');
+                izinIcon.classList.add('flex');
+            } 
+            // LOGIKA 2: Jika Wajib Titip HP
+            else {
+                // Cek apakah user sedang menitip HP (Logika Ambil)
+                if (activeDeposits[uid]) {
+                    const lokerDiambil = activeDeposits[uid];
+                    delete activeDeposits[uid]; // Hapus dari daftar penitipan
+                    totalHpDititip--;
+                    
+                    statusContainer.classList.add('border-blue-500/50');
+                    statusLabel.textContent = "AMBIL HP DARI LOKER";
+                    statusLabel.className = "text-xl font-bold tracking-widest text-blue-400 mb-2";
+                    
+                    statusContent.textContent = lokerDiambil;
+                    statusContent.classList.add('text-blue-300', 'text-glow-loker');
+                } 
+                // Cek apakah ini penitipan baru (Logika Titip)
+                else {
+                    const lokerBaru = generateNomorLoker(currentLokerIndex); // SUDAH DIPERBAIKI
+                    activeDeposits[uid] = lokerBaru; 
+                    currentLokerIndex++;
+
+                    statusContainer.classList.add('border-yellow-500/50');
+                    statusLabel.textContent = "SIMPAN HP DI LOKER";
+                    statusLabel.className = "text-xl font-bold tracking-widest text-yellow-400 mb-2";
+                    
+                    statusContent.textContent = lokerBaru;
+                    statusContent.classList.add('text-yellow-300', 'text-shadow');
+                }
+                
+                // Update text Total HP di Panel Kiri
+                document.getElementById('totalHP').textContent = totalHpDititip;
+            }
+
+            // BUKA SPLIT SCREEN
+            leftPanel.classList.remove('w-full');
+            leftPanel.classList.add('w-1/2');
+            
+            rightPanel.classList.remove('w-0', 'opacity-0', 'scale-95');
+            rightPanel.classList.add('w-1/2', 'opacity-100', 'scale-100');
+
+            // RESET & JALANKAN ANIMASI BAR (20 Detik)
+            timerBar.style.transition = 'none';
+            timerBar.style.transform = 'scaleX(1)';
+            setTimeout(() => {
+                timerBar.style.transition = 'transform 20s linear';
+                timerBar.style.transform = 'scaleX(0)';
+            }, 50);
+
+            // TIMER TUTUP SPLIT SCREEN (Kembali ke Idle)
+            splitScreenTimer = setTimeout(() => {
+                closeSplitScreen();
+            }, 20000);
+        }
+
+        function closeSplitScreen() {
+            rightPanel.classList.remove('w-1/2', 'opacity-100', 'scale-100');
+            rightPanel.classList.add('w-0', 'opacity-0', 'scale-95');
+            
+            leftPanel.classList.remove('w-1/2');
+            leftPanel.classList.add('w-full');
+            
+            rfidInput.focus();
+        }
+    </script>
+</body>
+</html>
