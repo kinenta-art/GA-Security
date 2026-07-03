@@ -6,7 +6,6 @@
     <title>Modul A - Kontrol HP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Animasi Background Premium */
         @keyframes gradientMove {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -17,26 +16,10 @@
             background-size: 400% 400%;
             animation: gradientMove 15s ease infinite;
         }
-
-        /* Transisi Layout Panel yang Mulus */
-        .panel-transition {
-            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Menyembunyikan input RFID */
-        #rfidInput {
-            position: absolute;
-            opacity: 0;
-            top: -1000px;
-        }
-
-        /* Efek Glow pada Nomor Loker */
-        .text-glow-loker {
-            text-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
-        }
-        .text-glow-izin {
-            text-shadow: 0 0 40px rgba(34, 197, 94, 0.6);
-        }
+        .panel-transition { transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+        #rfidInput { position: absolute; opacity: 0; top: -1000px; }
+        .text-glow-loker { text-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+        .text-glow-izin { text-shadow: 0 0 40px rgba(34, 197, 94, 0.6); }
     </style>
 </head>
 <body class="bg-animated h-screen w-screen flex flex-col justify-center items-center overflow-hidden font-sans text-slate-100 relative p-8">
@@ -45,6 +28,10 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
+    </button>
+
+    <button id="btnInject" class="absolute bottom-4 right-4 px-4 py-2 bg-slate-800/50 text-slate-500 text-xs rounded hover:bg-slate-700 hover:text-white transition z-50">
+        Inject Data Master
     </button>
 
     <div id="mainContainer" class="flex w-full max-w-[1400px] h-[85vh] gap-8 panel-transition">
@@ -69,21 +56,35 @@
 
         <div id="rightPanel" class="w-0 opacity-0 scale-95 overflow-hidden bg-slate-800 border border-slate-600 rounded-[2.5rem] shadow-2xl flex flex-col relative panel-transition">
             
-            <div class="flex-grow flex flex-col justify-center p-12 whitespace-nowrap">
-                <div class="mb-8">
-                    <h3 class="text-4xl font-extrabold text-white mb-2 truncate" id="scanName">NAMA KARYAWAN</h3>
-                    <p class="text-xl text-slate-400 font-medium tracking-wide" id="scanDept">Departemen</p>
+            <div class="flex-grow flex flex-col justify-center p-10 whitespace-nowrap relative">
+                <div id="loadingState" class="absolute inset-0 bg-slate-800 z-20 flex flex-col items-center justify-center hidden">
+                    <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p class="text-slate-400">Sinkronisasi Database...</p>
                 </div>
 
-                <div id="statusContainer" class="bg-slate-900/80 rounded-3xl p-8 border text-center relative overflow-hidden">
-                    <p id="statusLabel" class="text-lg font-semibold tracking-widest uppercase mb-2">STATUS</p>
+                <div class="mb-6">
+                    <h3 class="text-4xl font-extrabold text-white mb-2 truncate" id="scanName">-</h3>
+                    <p class="text-xl text-blue-400 font-medium tracking-wide" id="scanDept">-</p>
+                    <div class="mt-4 inline-flex items-center px-4 py-2 bg-slate-700/50 rounded-lg border border-slate-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                        </svg>
+                        <div>
+                            <p class="text-[0.65rem] uppercase tracking-wider text-slate-400">Atasan Langsung</p>
+                            <p class="text-sm font-semibold text-slate-200" id="scanAtasan">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="statusContainer" class="bg-slate-900/80 rounded-3xl p-6 border text-center relative overflow-hidden flex-grow flex flex-col justify-center">
+                    <p id="statusLabel" class="text-lg font-semibold tracking-widest uppercase mb-1">STATUS</p>
                     
-                    <div id="statusContent" class="text-[10rem] font-black leading-none tracking-tighter">
-                        A01
+                    <div id="statusContent" class="text-[10rem] font-black leading-none tracking-tighter mt-2">
+                        -
                     </div>
                     
-                    <div id="izinIcon" class="hidden justify-center mt-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <div id="izinIcon" class="hidden justify-center mt-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                         </svg>
                     </div>
@@ -98,147 +99,207 @@
 
     <input type="text" id="rfidInput" autocomplete="off" autofocus>
 
-    <script>
-        // --- LOGIKA IDLE & AUTO-FOCUS ---
-        let idleToHomeTimer;
-        function resetIdleToHome() {
-            clearTimeout(idleToHomeTimer);
-            idleToHomeTimer = setTimeout(() => { window.location.href = 'index.html'; }, 5 * 60 * 1000);
-        }
-        window.onload = resetIdleToHome;
-        document.onclick = () => { rfidInput.focus(); resetIdleToHome(); };
-        
-        // --- SIMULASI DATABASE KARYAWAN ---
-        const mockDatabase = {
-            "111": { nama: "Budi Santoso", dept: "Production", izin_bawa_hp: false },
-            "222": { nama: "Siti Aisyah", dept: "HSE Manager", izin_bawa_hp: true },
-            "333": { nama: "Andi Pratama", dept: "Maintenance", izin_bawa_hp: false }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbPD2u_3P_HcgHBs1uLrkXV3CKKUw64HQ",
+            authDomain: "ga-security-afd58.firebaseapp.com",
+            projectId: "ga-security-afd58",
+            storageBucket: "ga-security-afd58.firebasestorage.app",
+            messagingSenderId: "335637796681",
+            appId: "1:335637796681:web:84559dbdf54eadc3bf2c98"
         };
 
-        // --- STATE MANAJEMEN LOKER (Simulasi Backend Firestore) ---
-        let totalHpDititip = 0;
-        let currentLokerIndex = 0; // Mulai dari 0 untuk Loker A01
-        let activeDeposits = {}; // Menyimpan siapa yang sedang menitip HP { "111": "A01" }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        // Fungsi mengubah index angka menjadi format A01-A20, B01-B20
+        // --- STATE MANAGEMENT ---
+        let totalHpDititip = 0;
+        let currentLokerIndex = 0; 
+        let activeDeposits = {}; 
+
         function generateNomorLoker(index) {
             const abjad = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             const indexHuruf = Math.floor(index / 20); 
-            const huruf = abjad[indexHuruf] || "Z"; // Fallback ke Z jika penuh
+            const huruf = abjad[indexHuruf] || "Z"; 
             let angka = (index % 20) + 1; 
             return huruf + angka.toString().padStart(2, '0'); 
         }
 
-        // --- LOGIKA UI & SCAN ---
+        // --- UI ELEMENTS ---
         const leftPanel = document.getElementById('leftPanel');
         const rightPanel = document.getElementById('rightPanel');
         const rfidInput = document.getElementById('rfidInput');
         const timerBar = document.getElementById('timerBar');
-        
+        const loadingState = document.getElementById('loadingState');
         let splitScreenTimer; 
 
+        // Auto Focus
+        document.onclick = () => { rfidInput.focus(); };
+
+        // Tangkap Scan
         rfidInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 const uid = this.value.trim();
                 this.value = ''; 
-                if(uid !== "") processScan(uid);
+                if(uid !== "") processScanToFirebase(uid);
             }
         });
 
-        function processScan(uid) {
-            // Hentikan timer split-screen jika masih berjalan
+        // PROSES SCAN KE FIREBASE
+        async function processScanToFirebase(uid) {
             clearTimeout(splitScreenTimer);
             
-            const user = mockDatabase[uid] || { nama: "UID: " + uid, dept: "Tidak Terdaftar", izin_bawa_hp: false };
-            
-            // Elemen UI Kanan
-            const statusContainer = document.getElementById('statusContainer');
-            const statusLabel = document.getElementById('statusLabel');
-            const statusContent = document.getElementById('statusContent');
-            const izinIcon = document.getElementById('izinIcon');
+            // Buka Panel dengan mode Loading
+            openSplitScreen();
+            loadingState.classList.remove('hidden');
 
-            document.getElementById('scanName').textContent = user.nama;
-            document.getElementById('scanDept').textContent = user.dept;
-
-            // RESET CSS STYLE
-            statusContainer.className = "bg-slate-900/80 rounded-3xl p-8 border text-center relative overflow-hidden transition-colors duration-300";
-            statusContent.className = "text-[10rem] font-black leading-none tracking-tighter";
-            izinIcon.classList.add('hidden');
-
-            // LOGIKA 1: Jika Diizinkan Membawa HP
-            if (user.izin_bawa_hp) {
-                statusContainer.classList.add('border-green-500/50');
-                statusLabel.textContent = "AKSES DIIZINKAN";
-                statusLabel.className = "text-xl font-bold tracking-widest text-green-400 mb-2";
+            try {
+                // 1. TARIK DATA DARI FIRESTORE
+                const docRef = doc(db, "users", uid);
+                const docSnap = await getDoc(docRef);
                 
-                statusContent.textContent = "BEBAS";
-                statusContent.classList.add('text-[6rem]', 'text-green-300', 'text-glow-izin');
-                izinIcon.classList.remove('hidden');
-                izinIcon.classList.add('flex');
-            } 
-            // LOGIKA 2: Jika Wajib Titip HP
-            else {
-                // Cek apakah user sedang menitip HP (Logika Ambil)
-                if (activeDeposits[uid]) {
-                    const lokerDiambil = activeDeposits[uid];
-                    delete activeDeposits[uid]; // Hapus dari daftar penitipan
-                    totalHpDititip--;
-                    
-                    statusContainer.classList.add('border-blue-500/50');
-                    statusLabel.textContent = "AMBIL HP DARI LOKER";
-                    statusLabel.className = "text-xl font-bold tracking-widest text-blue-400 mb-2";
-                    
-                    statusContent.textContent = lokerDiambil;
-                    statusContent.classList.add('text-blue-300', 'text-glow-loker');
-                } 
-                // Cek apakah ini penitipan baru (Logika Titip)
-                else {
-                    const lokerBaru = generateNomorLoker(currentLokerIndex); // SUDAH DIPERBAIKI
-                    activeDeposits[uid] = lokerBaru; 
-                    currentLokerIndex++;
-
-                    statusContainer.classList.add('border-yellow-500/50');
-                    statusLabel.textContent = "SIMPAN HP DI LOKER";
-                    statusLabel.className = "text-xl font-bold tracking-widest text-yellow-400 mb-2";
-                    
-                    statusContent.textContent = lokerBaru;
-                    statusContent.classList.add('text-yellow-300', 'text-shadow');
+                let user;
+                if (docSnap.exists()) {
+                    user = docSnap.data();
+                } else {
+                    user = { nama: "UID: " + uid, departemen: "Tidak Terdaftar", izin_bawa_hp: false, atasan_langsung: "-" };
                 }
-                
-                // Update text Total HP di Panel Kiri
-                document.getElementById('totalHP').textContent = totalHpDititip;
-            }
 
-            // BUKA SPLIT SCREEN
+                // Matikan loading
+                loadingState.classList.add('hidden');
+
+                // 2. UPDATE UI PROFIL KARYAWAN
+                document.getElementById('scanName').textContent = user.nama;
+                document.getElementById('scanDept').textContent = user.departemen;
+                document.getElementById('scanAtasan').textContent = user.atasan_langsung;
+
+                const statusContainer = document.getElementById('statusContainer');
+                const statusLabel = document.getElementById('statusLabel');
+                const statusContent = document.getElementById('statusContent');
+                const izinIcon = document.getElementById('izinIcon');
+
+                statusContainer.className = "bg-slate-900/80 rounded-3xl p-6 border text-center relative overflow-hidden flex-grow flex flex-col justify-center transition-colors duration-300";
+                statusContent.className = "text-[10rem] font-black leading-none tracking-tighter mt-2";
+                izinIcon.classList.add('hidden');
+
+                // 3. LOGIKA PENITIPAN / IZIN
+                if (user.izin_bawa_hp) {
+                    statusContainer.classList.add('border-green-500/50');
+                    statusLabel.textContent = "AKSES DIIZINKAN";
+                    statusLabel.className = "text-2xl font-bold tracking-widest text-green-400 mb-1";
+                    
+                    statusContent.textContent = "BEBAS";
+                    statusContent.classList.add('text-[7rem]', 'text-green-300', 'text-glow-izin');
+                    izinIcon.classList.remove('hidden');
+                    izinIcon.classList.add('flex');
+
+                    // Simpan log bahwa dia masuk bawa HP
+                    await addDoc(collection(db, "logs_aktivitas"), {
+                        uid: uid, nama: user.nama, aktivitas: "Akses HP Diizinkan", waktu: new Date().toISOString()
+                    });
+
+                } else {
+                    if (activeDeposits[uid]) {
+                        // PROSES AMBIL
+                        const lokerDiambil = activeDeposits[uid];
+                        delete activeDeposits[uid]; 
+                        totalHpDititip--;
+                        
+                        statusContainer.classList.add('border-blue-500/50');
+                        statusLabel.textContent = "AMBIL HP DARI LOKER";
+                        statusLabel.className = "text-2xl font-bold tracking-widest text-blue-400 mb-1";
+                        
+                        statusContent.textContent = lokerDiambil;
+                        statusContent.classList.add('text-blue-300', 'text-glow-loker');
+
+                        await addDoc(collection(db, "logs_aktivitas"), {
+                            uid: uid, nama: user.nama, loker: lokerDiambil, aktivitas: "Ambil HP", waktu: new Date().toISOString()
+                        });
+
+                    } else {
+                        // PROSES TITIP
+                        const lokerBaru = generateNomorLoker(currentLokerIndex);
+                        activeDeposits[uid] = lokerBaru; 
+                        currentLokerIndex++;
+                        totalHpDititip++;
+
+                        statusContainer.classList.add('border-yellow-500/50');
+                        statusLabel.textContent = "SIMPAN HP DI LOKER";
+                        statusLabel.className = "text-2xl font-bold tracking-widest text-yellow-400 mb-1";
+                        
+                        statusContent.textContent = lokerBaru;
+                        statusContent.classList.add('text-yellow-300');
+
+                        await addDoc(collection(db, "logs_aktivitas"), {
+                            uid: uid, nama: user.nama, loker: lokerBaru, aktivitas: "Titip HP", waktu: new Date().toISOString()
+                        });
+                    }
+                    document.getElementById('totalHP').textContent = totalHpDititip;
+                }
+
+                // 4. JALANKAN ANIMASI BAR & TIMER TUTUP
+                timerBar.style.transition = 'none';
+                timerBar.style.transform = 'scaleX(1)';
+                setTimeout(() => {
+                    timerBar.style.transition = 'transform 20s linear';
+                    timerBar.style.transform = 'scaleX(0)';
+                }, 50);
+
+                splitScreenTimer = setTimeout(() => {
+                    closeSplitScreen();
+                }, 20000);
+
+            } catch (error) {
+                console.error("Error Firestore: ", error);
+                loadingState.innerHTML = `<p class="text-red-400 font-bold">Koneksi Database Gagal</p>`;
+            }
+        }
+
+        function openSplitScreen() {
             leftPanel.classList.remove('w-full');
             leftPanel.classList.add('w-1/2');
-            
             rightPanel.classList.remove('w-0', 'opacity-0', 'scale-95');
             rightPanel.classList.add('w-1/2', 'opacity-100', 'scale-100');
-
-            // RESET & JALANKAN ANIMASI BAR (20 Detik)
-            timerBar.style.transition = 'none';
-            timerBar.style.transform = 'scaleX(1)';
-            setTimeout(() => {
-                timerBar.style.transition = 'transform 20s linear';
-                timerBar.style.transform = 'scaleX(0)';
-            }, 50);
-
-            // TIMER TUTUP SPLIT SCREEN (Kembali ke Idle)
-            splitScreenTimer = setTimeout(() => {
-                closeSplitScreen();
-            }, 20000);
         }
 
         function closeSplitScreen() {
             rightPanel.classList.remove('w-1/2', 'opacity-100', 'scale-100');
             rightPanel.classList.add('w-0', 'opacity-0', 'scale-95');
-            
             leftPanel.classList.remove('w-1/2');
             leftPanel.classList.add('w-full');
-            
             rfidInput.focus();
         }
+
+        // --- SCRIPT INJECT DATA DUMMY ---
+        document.getElementById('btnInject').addEventListener('click', async () => {
+            const btn = document.getElementById('btnInject');
+            btn.textContent = "Menyimpan ke Firebase...";
+            
+            const dummyData = [
+                { uid: "111", nama: "R. A. Sugiantoro", departemen: "HRDGA Asst.Manager", izin_bawa_hp: true, atasan_langsung: "Kinenta Harsono" },
+                { uid: "222", nama: "Ari Rafiar", departemen: "GA Leader", izin_bawa_hp: true, atasan_langsung: "R. A. Sugiantoro" },
+                { uid: "333", nama: "Lala", departemen: "Staff Production", izin_bawa_hp: false, atasan_langsung: "Nia Nurazizah" },
+                { uid: "444", nama: "Irfan", departemen: "Production", izin_bawa_hp: false, atasan_langsung: "Arie Ratna Mulia" }
+            ];
+
+            try {
+                for (const d of dummyData) {
+                    await setDoc(doc(db, "users", d.uid), {
+                        nama: d.nama,
+                        departemen: d.departemen,
+                        izin_bawa_hp: d.izin_bawa_hp,
+                        atasan_langsung: d.atasan_langsung
+                    });
+                }
+                alert("Berhasil! 4 Data Master sudah masuk ke Firestore.");
+                btn.classList.add('hidden'); // Sembunyikan setelah berhasil
+            } catch (error) {
+                alert("Gagal Injeksi: " + error.message);
+            }
+        });
     </script>
 </body>
 </html>
