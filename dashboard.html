@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRDGA Dashboard - Security Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; } 
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        
+        /* Transisi Accordion Khusus Panel Kiri */
+        .card-detail { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.3s ease-in-out; }
+        .card-detail.expanded { max-height: 250px; opacity: 1; padding-top: 1rem; margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
+        .chevron { transition: transform 0.3s; }
+        .chevron.expanded { transform: rotate(180deg); }
+        
+        input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; }
+    </style>
+</head>
+<body class="text-slate-100 font-sans antialiased h-screen flex flex-col overflow-hidden relative">
+
+    <!-- HEADER DASHBOARD -->
+    <header class="bg-slate-800/80 border-b border-slate-700 px-8 py-5 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/50">
+                <!-- Ikon Prisai (Shield) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-white tracking-wide">Monitoring Dashboard</h1>
+                <p class="text-[0.7rem] text-blue-400 font-semibold tracking-widest uppercase mt-0.5">HRGA Dept - GA Security</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-8">
+            <div class="text-right">
+                <p class="text-sm font-semibold text-slate-400 uppercase tracking-widest" id="tglHariIni">Senin, 01 Jan 2026</p>
+                <p class="text-xs text-emerald-400 flex items-center justify-end gap-1 mt-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Update
+                </p>
+            </div>
+            <!-- Tombol Navigasi Menu Utama -->
+            <button onclick="window.location.href='index.html'" class="bg-slate-700/50 hover:bg-blue-600 border border-slate-600 hover:border-blue-500 px-4 py-2 rounded-xl text-sm font-bold text-slate-300 hover:text-white transition-all duration-300 flex items-center gap-2 shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                Menu Utama
+            </button>
+        </div>
+    </header>
+
+    <!-- SUMMARY CARDS -->
+    <div class="grid grid-cols-3 gap-6 p-8 pb-4 shrink-0">
+        
+        <!-- Card 1: Penitipan HP -->
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 flex items-center justify-between shadow-lg hover:border-blue-500/50 transition-all group">
+            <div onclick="openModalHP()" class="cursor-pointer flex-grow">
+                <p class="text-[0.7rem] font-semibold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                    HP Di Loker Saat Ini
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </p>
+                <div class="flex items-end gap-2 mb-1">
+                    <span class="text-5xl font-black text-white leading-none group-hover:text-blue-300 transition-colors" id="sumHPActive">0</span>
+                    <span class="text-sm text-slate-500 font-medium mb-1">Unit</span>
+                </div>
+                <p class="text-[0.65rem] text-blue-400 font-semibold tracking-widest uppercase" id="sumHPTotal">0 Transaksi Hari Ini</p>
+            </div>
+            
+            <div class="flex flex-col gap-2 shrink-0">
+                <button onclick="openModalHP()" class="w-10 h-10 rounded-full bg-slate-700/50 hover:bg-blue-500/20 flex items-center justify-center text-slate-400 hover:text-blue-400 transition" title="Lihat Loker Aktif">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                </button>
+                <button onclick="openModalHPLog()" class="w-10 h-10 rounded-full bg-slate-700/50 hover:bg-emerald-500/20 flex items-center justify-center text-slate-400 hover:text-emerald-400 transition shadow-md" title="Buku Log Historis HP">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Card 2: Keluar Plant -->
+        <div class="bg-gradient-to-br from-emerald-900/40 to-slate-800 border border-emerald-500/30 rounded-2xl p-6 flex items-center justify-between shadow-lg">
+            <div>
+                <p class="text-[0.7rem] font-semibold text-emerald-400 uppercase tracking-widest mb-2">Sedang Di Luar Plant</p>
+                <div class="flex items-end gap-2">
+                    <span class="text-5xl font-black text-emerald-400 leading-none" id="sumKeluar">0</span>
+                    <span class="text-sm text-emerald-500/70 font-medium mb-1">Orang</span>
+                </div>
+            </div>
+            <div class="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+            </div>
+        </div>
+
+        <!-- Card 3: Sudah Kembali -->
+        <div class="bg-gradient-to-br from-blue-900/40 to-slate-800 border border-blue-500/30 rounded-2xl p-6 flex items-center justify-between shadow-lg">
+            <div>
+                <p class="text-[0.7rem] font-semibold text-blue-400 uppercase tracking-widest mb-2">Sudah Kembali</p>
+                <div class="flex items-end gap-2">
+                    <span class="text-5xl font-black text-blue-400 leading-none" id="sumKembali">0</span>
+                    <span class="text-sm text-blue-500/70 font-medium mb-1">Orang Hari Ini</span>
+                </div>
+            </div>
+            <div class="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="flex gap-8 px-8 pb-8 flex-grow overflow-hidden items-start">
+        
+        <!-- KOLOM KIRI (KARYAWAN IZIN KELUAR) -->
+        <div id="leftPanelContainer" class="w-1/2 bg-slate-800/50 border border-slate-700 rounded-3xl flex flex-col shadow-xl transition-all duration-500 h-full">
+            <div class="p-6 border-b border-slate-700 bg-slate-800/80 flex justify-between items-center shrink-0 rounded-t-3xl">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Karyawan Izin Keluar
+                </h3>
+                <span class="text-xs bg-slate-700 px-3 py-1 rounded-full text-slate-300">Prioritas Jabatan</span>
+            </div>
+            
+            <div class="p-6 flex-grow overflow-y-auto custom-scrollbar" id="listSedangKeluar">
+                <!-- Data digenerate JS -->
+            </div>
+        </div>
+
+        <!-- KOLOM KANAN (KARYAWAN YANG SUDAH KEMBALI) -->
+        <div id="rightPanelContainer" class="w-1/2 bg-slate-800/50 border border-slate-700 rounded-3xl flex flex-col h-full shadow-xl transition-all duration-500">
+            <div class="p-6 border-b border-slate-700 bg-slate-800/80 flex justify-between items-center shrink-0 rounded-t-3xl">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    Karyawan yang sudah kembali
+                </h3>
+                <span class="text-xs bg-slate-700 px-3 py-1 rounded-full text-slate-300">Klik Untuk Detail</span>
+            </div>
+            
+            <div class="p-6 flex-grow overflow-y-auto custom-scrollbar" id="listSudahKembali">
+                <!-- Data digenerate JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- MODALS AREA -->
+    <!-- ======================================================= -->
+
+    <!-- MODAL 1: LOKER HP AKTIF -->
+    <div id="modalHP" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity duration-300">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl transform scale-95 transition-transform duration-300" id="modalHPContent">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800/80 rounded-t-2xl">
+                <div>
+                    <h3 class="text-xl font-bold text-white">Daftar Penitipan HP Aktif</h3>
+                    <p class="text-[0.65rem] text-blue-400 uppercase tracking-widest mt-1">Perangkat yang sedang berada di Loker Security</p>
+                </div>
+                <button onclick="closeModalHP()" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-700 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-grow bg-slate-900/50">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-[0.65rem] uppercase tracking-widest text-slate-500 border-b border-slate-700">
+                            <th class="pb-3 pl-2">Loker</th>
+                            <th class="pb-3">Nama Karyawan</th>
+                            <th class="pb-3">Departemen</th>
+                            <th class="pb-3">Atasan Langsung</th>
+                            <th class="pb-3 text-right pr-2">Waktu Titip</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listHPDetail" class="text-sm"></tbody>
+                </table>
+                <div id="hpEmptyState" class="hidden flex-col items-center justify-center py-12 text-slate-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                    <p>Tidak ada HP yang dititipkan saat ini.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: BUKU LOG HP (Filterable) -->
+    <div id="modalHPLog" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity duration-300">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl transform scale-95 transition-transform duration-300" id="modalHPLogContent">
+            
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800/80 rounded-t-2xl shrink-0">
+                <div>
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                        Buku Log Aktivitas HP
+                    </h3>
+                    <p class="text-[0.65rem] text-slate-400 uppercase tracking-widest mt-1">Riwayat Lengkap Penitipan & Pengambilan Hari Ini</p>
+                </div>
+                <button onclick="closeModalHPLog()" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-700 hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            
+            <div class="p-4 bg-slate-900 border-b border-slate-700 flex gap-3 shrink-0">
+                <input type="text" id="hpFilterName" placeholder="Cari Nama..." class="bg-slate-800 border border-slate-600 text-sm rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500 w-1/4">
+                <input type="text" id="hpFilterLeader" placeholder="Cari Atasan..." class="bg-slate-800 border border-slate-600 text-sm rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500 w-1/4">
+                <input type="text" id="hpFilterLoker" placeholder="No. Loker (ex: A01)" class="bg-slate-800 border border-slate-600 text-sm rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500 w-32">
+                
+                <div class="flex items-center gap-2 border border-slate-600 bg-slate-800 rounded-lg px-3 py-1">
+                    <span class="text-xs text-slate-400 uppercase">Jam:</span>
+                    <input type="time" id="hpFilterTimeA" class="bg-transparent text-sm text-white focus:outline-none">
+                    <span class="text-slate-500">-</span>
+                    <input type="time" id="hpFilterTimeB" class="bg-transparent text-sm text-white focus:outline-none">
+                </div>
+                
+                <button onclick="resetHPLogFilter()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg text-sm font-semibold transition ml-auto">Reset</button>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-grow bg-slate-900/50">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-[0.65rem] uppercase tracking-widest text-slate-500 border-b border-slate-700">
+                            <th class="pb-3 pl-2">Waktu</th>
+                            <th class="pb-3">Aktivitas</th>
+                            <th class="pb-3">Nama Karyawan</th>
+                            <th class="pb-3">Atasan Langsung</th>
+                            <th class="pb-3 text-right pr-2">Loker</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listHPLog" class="text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: DETAIL RIWAYAT IZIN KELUAR -->
+    <div id="modalRiwayat" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity duration-300">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl flex flex-col shadow-2xl transform scale-95 transition-transform duration-300" id="modalRiwayatContent">
+            
+            <div id="modalRiwHeader" class="p-6 border-b border-slate-700 flex justify-between items-center rounded-t-2xl">
+                <!-- Content via JS -->
+            </div>
+            
+            <div class="p-8 bg-slate-900/50 rounded-b-2xl">
+                <div class="grid grid-cols-3 gap-4 mb-8 bg-slate-800/80 p-5 rounded-xl border border-slate-700/50 text-center shadow-inner">
+                    <div>
+                        <p class="text-[0.65rem] uppercase tracking-widest text-slate-500 mb-1">Waktu Keluar</p>
+                        <p class="font-mono font-bold text-slate-200 text-xl" id="mRiwKeluar">-</p>
+                    </div>
+                    <div class="border-x border-slate-700/50">
+                        <p class="text-[0.65rem] uppercase tracking-widest text-emerald-500 mb-1">Durasi Aktual</p>
+                        <p class="font-bold text-emerald-400 text-xl bg-emerald-500/10 px-2 py-0.5 rounded mx-auto inline-block" id="mRiwDurasi">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[0.65rem] uppercase tracking-widest text-slate-500 mb-1">Waktu Masuk</p>
+                        <p class="font-mono font-bold text-blue-400 text-xl" id="mRiwMasuk">-</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest mb-1">Kategori Tujuan</p>
+                        <p class="text-sm font-semibold text-slate-200 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700" id="mRiwTujuan">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest mb-1">Status Kepulangan</p>
+                        <p class="text-sm font-semibold text-slate-200 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700" id="mRiwStatusP">-</p>
+                    </div>
+                    
+                    <div class="col-span-2">
+                        <p class="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest mb-1">Detail Alasan Lengkap</p>
+                        <p class="text-sm text-slate-300 italic bg-slate-800 px-4 py-3 rounded-lg border border-slate-700 leading-relaxed" id="mRiwAlasan">-</p>
+                    </div>
+
+                    <div>
+                        <p class="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest mb-1">Estimasi Kembali (Plan)</p>
+                        <p class="text-sm font-mono font-bold text-slate-300" id="mRiwEstimasi">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[0.65rem] font-bold text-slate-500 uppercase tracking-widest mb-1">Status Kedisiplinan</p>
+                        <div id="mRiwDisiplin" class="mt-0.5"></div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- FIREBASE SDK & LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbPD2u_3P_HcgHBs1uLrkXV3CKKUw64HQ",
+            authDomain: "ga-security-afd58.firebaseapp.com",
+            projectId: "ga-security-afd58",
+            storageBucket: "ga-security-afd58.firebasestorage.app",
+            messagingSenderId: "335637796681",
+            appId: "1:335637796681:web:84559dbdf54eadc3bf2c98"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Utilities
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('tglHariIni').textContent = new Date().toLocaleDateString('id-ID', options);
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // Global States
+        let masterUsers = {};
+        let allHPLogs = []; 
+        window.riwayatDataMap = {}; 
+
+        // Load Master Users
+        onSnapshot(collection(db, "users"), (snapshot) => {
+            snapshot.forEach(doc => { masterUsers[doc.id] = doc.data(); });
+        });
+
+        // ==========================================
+        // 1. PENGELOLAAN HP
+        // ==========================================
+        const modalHP = document.getElementById('modalHP');
+        const modalHPContent = document.getElementById('modalHPContent');
+        const modalHPLog = document.getElementById('modalHPLog');
+        const modalHPLogContent = document.getElementById('modalHPLogContent');
+        
+        window.openModalHP = () => {
+            modalHP.classList.remove('hidden');
+            setTimeout(() => { modalHP.classList.remove('opacity-0'); modalHPContent.classList.remove('scale-95'); }, 10);
+        };
+        window.closeModalHP = () => {
+            modalHP.classList.add('opacity-0'); modalHPContent.classList.add('scale-95');
+            setTimeout(() => { modalHP.classList.add('hidden'); }, 300);
+        };
+
+        window.openModalHPLog = () => {
+            modalHPLog.classList.remove('hidden');
+            setTimeout(() => { modalHPLog.classList.remove('opacity-0'); modalHPLogContent.classList.remove('scale-95'); }, 10);
+            renderHPLogTable(); 
+        };
+        window.closeModalHPLog = () => {
+            modalHPLog.classList.add('opacity-0'); modalHPLogContent.classList.add('scale-95');
+            setTimeout(() => { modalHPLog.classList.add('hidden'); }, 300);
+        };
+
+        onSnapshot(collection(db, "logs_aktivitas"), (snapshot) => {
+            let hpState = {}; 
+            allHPLogs = [];
+            let countTotalTransaksi = 0;
+            
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                if(d.waktu && d.waktu.startsWith(todayStr)) {
+                    if (d.aktivitas === "Titip HP" || d.aktivitas === "Ambil HP") {
+                        countTotalTransaksi++;
+                        allHPLogs.push(d);
+                        
+                        if(!hpState[d.uid] || d.waktu > hpState[d.uid].waktu) {
+                            hpState[d.uid] = d; 
+                        }
+                    }
+                }
+            });
+
+            let activeLockers = [];
+            for (let uid in hpState) {
+                if (hpState[uid].aktivitas === "Titip HP") activeLockers.push(hpState[uid]);
+            }
+            document.getElementById('sumHPActive').textContent = activeLockers.length;
+            document.getElementById('sumHPTotal').textContent = `${countTotalTransaksi} Transaksi Hari Ini`;
+
+            const tbody = document.getElementById('listHPDetail');
+            const emptyState = document.getElementById('hpEmptyState');
+            tbody.innerHTML = "";
+            if (activeLockers.length === 0) {
+                emptyState.classList.remove('hidden'); emptyState.classList.add('flex');
+            } else {
+                emptyState.classList.add('hidden'); emptyState.classList.remove('flex');
+                activeLockers.sort((a,b) => (a.loker || "").localeCompare(b.loker || ""));
+                activeLockers.forEach(data => {
+                    const master = masterUsers[data.uid] || {};
+                    const jam = new Date(data.waktu).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+                    tbody.innerHTML += `
+                        <tr class="border-b border-slate-700/50 hover:bg-slate-800 transition-colors">
+                            <td class="py-3 pl-2"><span class="bg-blue-500/20 text-blue-400 font-mono font-bold px-2 py-1 rounded">${data.loker}</span></td>
+                            <td class="py-3 font-semibold text-slate-200">${data.nama}</td>
+                            <td class="py-3 text-slate-400 text-xs">${master.departemen || '-'}</td>
+                            <td class="py-3 text-slate-300 text-xs">${master.atasan_langsung || '-'}</td>
+                            <td class="py-3 text-right pr-2 font-mono text-slate-400">${jam}</td>
+                        </tr>`;
+                });
+            }
+            if(!modalHPLog.classList.contains('hidden')) renderHPLogTable();
+        });
+
+        // Filter HP Log System
+        const fName = document.getElementById('hpFilterName');
+        const fLeader = document.getElementById('hpFilterLeader');
+        const fLoker = document.getElementById('hpFilterLoker');
+        const fTimeA = document.getElementById('hpFilterTimeA');
+        const fTimeB = document.getElementById('hpFilterTimeB');
+        
+        [fName, fLeader, fLoker, fTimeA, fTimeB].forEach(el => {
+            el.addEventListener('input', renderHPLogTable);
+        });
+
+        window.resetHPLogFilter = () => {
+            fName.value = ''; fLeader.value = ''; fLoker.value = ''; fTimeA.value = ''; fTimeB.value = '';
+            renderHPLogTable();
+        }
+
+        function renderHPLogTable() {
+            const tbody = document.getElementById('listHPLog');
+            tbody.innerHTML = "";
+            let filtered = allHPLogs.sort((a,b) => b.waktu.localeCompare(a.waktu));
+            
+            const vName = fName.value.toLowerCase();
+            const vLeader = fLeader.value.toLowerCase();
+            const vLoker = fLoker.value.toLowerCase();
+            const vTA = fTimeA.value;
+            const vTB = fTimeB.value;
+
+            filtered = filtered.filter(log => {
+                const master = masterUsers[log.uid] || {};
+                const leader = (master.atasan_langsung || '').toLowerCase();
+                const timeHHMM = new Date(log.waktu).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}).replace(/\./g, ':');
+
+                if (vName && !log.nama.toLowerCase().includes(vName)) return false;
+                if (vLeader && !leader.includes(vLeader)) return false;
+                if (vLoker && !(log.loker||'').toLowerCase().includes(vLoker)) return false;
+                if (vTA && timeHHMM < vTA) return false;
+                if (vTB && timeHHMM > vTB) return false;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-10 text-center text-slate-500">Tidak ada log yang sesuai filter.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(data => {
+                const master = masterUsers[data.uid] || {};
+                const jam = new Date(data.waktu).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+                const isAmbil = data.aktivitas === "Ambil HP";
+                const badgeAct = isAmbil 
+                    ? `<span class="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded text-[0.6rem] uppercase font-bold border border-blue-500/50">Diambil</span>`
+                    : `<span class="bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded text-[0.6rem] uppercase font-bold border border-yellow-500/50">Dititipkan</span>`;
+                
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-700/50 hover:bg-slate-800 transition-colors">
+                        <td class="py-3 pl-2 font-mono text-slate-300 font-bold">${jam}</td>
+                        <td class="py-3">${badgeAct}</td>
+                        <td class="py-3 font-semibold text-slate-200">${data.nama}<br><span class="text-[0.65rem] text-slate-400 font-normal uppercase tracking-wider">${master.departemen || '-'}</span></td>
+                        <td class="py-3 text-slate-300 text-xs">${master.atasan_langsung || '-'}</td>
+                        <td class="py-3 text-right pr-2"><span class="bg-slate-700 text-slate-300 font-mono font-bold px-2 py-1 rounded border border-slate-600">${data.loker || '-'}</span></td>
+                    </tr>`;
+            });
+        }
+
+        // ==========================================
+        // 2. KARYAWAN IZIN KELUAR (PANEL KIRI)
+        // ==========================================
+        const listSedangKeluar = document.getElementById('listSedangKeluar');
+        const leftPanelContainer = document.getElementById('leftPanelContainer');
+        const rightPanelContainer = document.getElementById('rightPanelContainer');
+
+        function getJabatanWeight(dept) {
+            if (!dept) return 10;
+            const d = dept.toLowerCase();
+            if (d.includes('plant manager') || d.includes('gm')) return 50;
+            if (d.includes('asst.manager') || d.includes('asst manager') || d.includes('manager')) return 40;
+            if (d.includes('leader') || d.includes('spv') || d.includes('supervisor')) return 30;
+            if (d.includes('staff')) return 20;
+            return 10; 
+        }
+
+        window.toggleCard = function(id) {
+            const detail = document.getElementById(`detail-${id}`);
+            const chevron = document.getElementById(`chev-${id}`);
+            if(detail.classList.contains('expanded')) {
+                detail.classList.remove('expanded'); chevron.classList.remove('expanded');
+            } else {
+                detail.classList.add('expanded'); chevron.classList.add('expanded');
+            }
+        }
+
+        onSnapshot(collection(db, "status_izin_keluar"), (snapshot) => {
+            let activeData = [];
+            snapshot.forEach(doc => {
+                let data = doc.data();
+                data.uid = doc.id;
+                data.weight = getJabatanWeight(data.departemen);
+                activeData.push(data);
+            });
+
+            activeData.sort((a, b) => {
+                if(b.weight !== a.weight) return b.weight - a.weight;
+                return a.waktuKeluar.localeCompare(b.waktuKeluar);
+            });
+
+            document.getElementById('sumKeluar').textContent = activeData.length;
+            listSedangKeluar.innerHTML = "";
+
+            // LOGIKA DINAMIS PANEL KIRI (HILANG JIKA KOSONG)
+            if(activeData.length === 0) {
+                leftPanelContainer.classList.add('hidden');
+                rightPanelContainer.classList.remove('w-1/2');
+                rightPanelContainer.classList.add('w-full');
+                return;
+            } else {
+                leftPanelContainer.classList.remove('hidden');
+                rightPanelContainer.classList.remove('w-full');
+                rightPanelContainer.classList.add('w-1/2');
+            }
+
+            activeData.forEach((data, index) => {
+                const isTop3 = index < 3;
+                let badgeWarning = "";
+                
+                if(data.status_kepulangan === "Kembali ke Plant" && data.estimasi_kembali) {
+                    const now = new Date();
+                    const currentMins = now.getHours() * 60 + now.getMinutes();
+                    const [eH, eM] = data.estimasi_kembali.split(':').map(Number);
+                    const estMins = eH * 60 + eM;
+                    if(currentMins > estMins) {
+                        badgeWarning = `<span class="bg-red-500/20 border border-red-500/50 text-red-400 text-[0.6rem] px-2 py-0.5 rounded font-bold uppercase animate-pulse inline-block mt-1">Telat ${currentMins - estMins} Mnt</span>`;
+                    }
+                }
+
+                let statusLabel = data.status_kepulangan === "Langsung Pulang" 
+                    ? `<span class="text-blue-400">Langsung Pulang</span>` 
+                    : `Estimasi Kembali: <span class="text-emerald-400 font-bold">${data.estimasi_kembali || '-'}</span>`;
+
+                const card = document.createElement('div');
+                card.className = `bg-slate-800 border ${isTop3 ? 'border-emerald-500/30' : 'border-slate-700'} rounded-xl p-5 mb-4 shadow-md cursor-pointer hover:bg-slate-700/50 transition-colors`;
+                card.setAttribute('onclick', `toggleCard('act-${data.uid}')`);
+                
+                // Perubahan Layout: Departemen dihilangkan di atas, Badge dipindah ke bawah nama.
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-4 overflow-hidden pr-4">
+                            <div class="w-12 h-12 rounded-full ${isTop3 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'} flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                            </div>
+                            <div class="flex flex-col items-start overflow-hidden">
+                                <p class="font-bold text-white text-lg w-full truncate">${data.nama}</p>
+                                ${badgeWarning ? `<div>${badgeWarning}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 shrink-0">
+                            <div class="text-right">
+                                <p class="text-[0.6rem] uppercase tracking-wider text-slate-500 mb-0.5">Jam Keluar</p>
+                                <p class="font-mono font-bold text-white text-lg">${data.waktuKeluar}</p>
+                            </div>
+                            <svg id="chev-act-${data.uid}" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-500 chevron shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                    </div>
+                    <div id="detail-act-${data.uid}" class="card-detail">
+                        <div class="flex justify-between gap-4 border-b border-slate-700/50 pb-3 mb-3">
+                             <p class="text-[0.65rem] text-slate-400 uppercase tracking-widest"><span class="font-bold">Dept:</span> ${data.departemen}</p>
+                        </div>
+                        <div class="flex justify-between gap-4">
+                            <div class="w-2/3 border-r border-slate-700/50 pr-4">
+                                <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">Tujuan: ${data.kategori_tujuan || 'Belum diinput'}</p>
+                                <p class="text-sm text-slate-300 italic">${data.catatan_alasan || 'Menunggu input dari petugas...'}</p>
+                            </div>
+                            <div class="w-1/3 text-right">
+                                <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest mb-1">Status Kehadiran</p>
+                                <p class="text-sm">${statusLabel}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                listSedangKeluar.appendChild(card);
+            });
+        });
+
+        // ==========================================
+        // 3. KARYAWAN SUDAH KEMBALI & MODAL RIWAYAT
+        // ==========================================
+        const listSudahKembali = document.getElementById('listSudahKembali');
+        const modalRiwayat = document.getElementById('modalRiwayat');
+        const modalRiwayatContent = document.getElementById('modalRiwayatContent');
+        
+        let mapLogKeluar = {};
+        let mapLogMasuk = {};
+        let mapAlasan = {};
+
+        function hitungDurasi(jamMulai, jamSelesai) {
+            let [j1, m1] = jamMulai.split(':').map(Number);
+            let [j2, m2] = jamSelesai.split(':').map(Number);
+            let mins = (j2 * 60 + m2) - (j1 * 60 + m1);
+            if (mins < 0) mins += 24 * 60;
+            let j = Math.floor(mins / 60);
+            let m = mins % 60;
+            if (j > 0) return `${j} Jam ${m} Mnt`;
+            return `${m} Mnt`;
+        }
+
+        function isTerlambat(estimasi, jamMasuk) {
+            if (!estimasi) return null;
+            let [eJ, eM] = estimasi.split(':').map(Number);
+            let [mJ, mM] = jamMasuk.split(':').map(Number);
+            let eTotal = (eJ * 60) + eM;
+            let mTotal = (mJ * 60) + mM;
+            if (mTotal > eTotal) return mTotal - eTotal; 
+            return 0; 
+        }
+
+        window.openModalRiwayat = (uid) => {
+            const data = window.riwayatDataMap[uid];
+            if(!data) return;
+
+            document.getElementById('mRiwKeluar').textContent = data.waktuKeluar;
+            document.getElementById('mRiwMasuk').textContent = data.waktuMasuk;
+            document.getElementById('mRiwDurasi').textContent = data.durasiAktual;
+            document.getElementById('mRiwTujuan').textContent = data.tujuan;
+            document.getElementById('mRiwStatusP').textContent = data.statusPulang;
+            document.getElementById('mRiwAlasan').textContent = data.alasan;
+            document.getElementById('mRiwEstimasi').textContent = data.estimasi || 'N/A';
+            
+            const header = document.getElementById('modalRiwHeader');
+            const disContainer = document.getElementById('mRiwDisiplin');
+            const jamMasuk = document.getElementById('mRiwMasuk');
+
+            jamMasuk.classList.remove('text-red-400');
+            jamMasuk.classList.add('text-blue-400');
+
+            if (data.isLate) {
+                header.className = "p-6 border-b border-red-700/50 flex justify-between items-center rounded-t-2xl bg-red-900/30";
+                header.innerHTML = `
+                    <div>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span> Detail Riwayat (Terlambat)
+                        </h3>
+                        <p class="text-sm font-semibold text-red-400 mt-1">${data.nama} - ${data.departemen}</p>
+                    </div>
+                    <button onclick="closeModalRiwayat()" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-700 hover:text-white transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                `;
+                disContainer.innerHTML = `<span class="bg-red-500/20 text-red-400 px-3 py-1 rounded font-bold uppercase text-xs border border-red-500/50 inline-block">Terlambat ${data.lateMins} Mnt</span>`;
+                jamMasuk.classList.add('text-red-400');
+                jamMasuk.classList.remove('text-blue-400');
+            } else {
+                header.className = "p-6 border-b border-slate-700 flex justify-between items-center rounded-t-2xl bg-slate-800/80";
+                header.innerHTML = `
+                    <div>
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            Detail Riwayat Selesai
+                        </h3>
+                        <p class="text-sm font-semibold text-blue-400 mt-1">${data.nama} - ${data.departemen}</p>
+                    </div>
+                    <button onclick="closeModalRiwayat()" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-700 hover:text-white transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                `;
+                disContainer.innerHTML = data.statusPulang === "Langsung Pulang" 
+                    ? `<span class="bg-slate-700 text-slate-300 px-3 py-1 rounded font-bold uppercase text-xs border border-slate-600 inline-block">Langsung Pulang</span>`
+                    : `<span class="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded font-bold uppercase text-xs border border-emerald-500/50 inline-block">Tepat Waktu</span>`;
+            }
+
+            modalRiwayat.classList.remove('hidden');
+            setTimeout(() => { modalRiwayat.classList.remove('opacity-0'); modalRiwayatContent.classList.remove('scale-95'); }, 10);
+        }
+
+        window.closeModalRiwayat = () => {
+            modalRiwayat.classList.add('opacity-0'); modalRiwayatContent.classList.add('scale-95');
+            setTimeout(() => { modalRiwayat.classList.add('hidden'); }, 300);
+        }
+
+        function renderRiwayatSelesai() {
+            let riwayatArray = [];
+            window.riwayatDataMap = {}; 
+            
+            for(let uid in mapLogMasuk) {
+                let m = mapLogMasuk[uid];
+                let k = mapLogKeluar[uid];
+                let a = mapAlasan[uid] || {}; 
+                
+                if (k) {
+                    let wK = new Date(k.waktu).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}).replace(/\./g, ':');
+                    let wM = new Date(m.waktu).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}).replace(/\./g, ':');
+                    let durasiAktual = hitungDurasi(wK, wM);
+                    
+                    let dataRiw = {
+                        uid: uid, nama: m.nama, departemen: a.departemen || masterUsers[uid]?.departemen || '-',
+                        waktuKeluar: wK, waktuMasuk: wM, alasan: a.catatan || 'Tidak ada catatan',
+                        tujuan: a.kategori_tujuan || 'Lain-lain', estimasi: a.estimasi_kembali || null,
+                        statusPulang: a.status_kepulangan || 'Kembali ke Plant',
+                        waktuMasukISO: m.waktu, durasiAktual: durasiAktual,
+                        isLate: false, lateMins: 0
+                    };
+
+                    if (dataRiw.statusPulang === "Kembali ke Plant" && dataRiw.estimasi) {
+                        let telat = isTerlambat(dataRiw.estimasi, wM);
+                        if (telat > 0) { dataRiw.isLate = true; dataRiw.lateMins = telat; }
+                    }
+
+                    riwayatArray.push(dataRiw);
+                    window.riwayatDataMap[uid] = dataRiw; 
+                }
+            }
+
+            riwayatArray.sort((a,b) => b.waktuMasukISO.localeCompare(a.waktuMasukISO)); 
+            document.getElementById('sumKembali').textContent = riwayatArray.length;
+            listSudahKembali.innerHTML = "";
+
+            if(riwayatArray.length === 0) {
+                listSudahKembali.innerHTML = `<div class="text-center text-slate-600 mt-10 text-sm">Belum ada riwayat kepulangan hari ini.</div>`;
+                return;
+            }
+
+            riwayatArray.forEach(data => {
+                let statusKedatanganHTML = `<span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold uppercase text-[0.6rem] border border-emerald-500/50 inline-block mt-1">Tepat Waktu</span>`;
+                let jamMasukColor = "text-blue-400"; 
+                
+                if (data.isLate) {
+                    statusKedatanganHTML = `<span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded font-bold uppercase text-[0.6rem] border border-red-500/50 animate-pulse inline-block mt-1">Terlambat ${data.lateMins} Mnt</span>`;
+                    jamMasukColor = "text-red-400"; 
+                } else if (data.statusPulang === "Langsung Pulang") {
+                    statusKedatanganHTML = `<span class="bg-slate-700 text-slate-300 px-2 py-0.5 rounded font-bold uppercase text-[0.6rem] border border-slate-600 inline-block mt-1">Langsung Pulang</span>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = `bg-slate-800/40 border ${data.isLate ? 'border-red-500/30 bg-red-900/10' : 'border-slate-700/50 hover:border-blue-500/30'} rounded-xl p-5 mb-4 shadow-sm cursor-pointer transition-colors group`;
+                card.setAttribute('onclick', `openModalRiwayat('${data.uid}')`);
+                
+                // Perubahan UI: Departemen dihilangkan, Badge ada di bawah nama
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="w-1/3 truncate pr-4 flex flex-col items-start">
+                            <p class="font-bold text-slate-200 truncate text-base group-hover:text-blue-300 transition-colors w-full">${data.nama}</p>
+                            <div>${statusKedatanganHTML}</div>
+                        </div>
+                        <div class="w-2/3 flex items-center justify-end gap-6 text-center">
+                            <div>
+                                <p class="text-[0.6rem] uppercase tracking-wider text-slate-500 mb-0.5">Keluar</p>
+                                <p class="font-mono font-bold text-slate-300">${data.waktuKeluar}</p>
+                            </div>
+                            <div>
+                                <p class="text-[0.6rem] uppercase tracking-wider text-slate-500 mb-0.5">Aktual</p>
+                                <p class="font-bold text-slate-400 bg-slate-700/50 px-2 rounded text-xs py-0.5">${data.durasiAktual}</p>
+                            </div>
+                            <div>
+                                <p class="text-[0.6rem] uppercase tracking-wider text-blue-400 mb-0.5">Masuk</p>
+                                <p class="font-mono font-black ${jamMasukColor} text-lg">${data.waktuMasuk}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                listSudahKembali.appendChild(card);
+            });
+        }
+
+        onSnapshot(collection(db, "logs_izin_keluar"), (snapshot) => {
+            mapLogKeluar = {}; mapLogMasuk = {};
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                if(d.waktu.startsWith(todayStr)) {
+                    if(d.aktivitas === "Keluar Plant") {
+                        if(!mapLogKeluar[d.uid] || d.waktu > mapLogKeluar[d.uid].waktu) mapLogKeluar[d.uid] = d;
+                    }
+                    if(d.aktivitas === "Masuk Plant") {
+                        if(!mapLogMasuk[d.uid] || d.waktu > mapLogMasuk[d.uid].waktu) mapLogMasuk[d.uid] = d;
+                    }
+                }
+            });
+            renderRiwayatSelesai();
+        });
+
+        onSnapshot(collection(db, "alasan_izin_keluar"), (snapshot) => {
+            mapAlasan = {};
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                if(d.waktu_input.startsWith(todayStr)) {
+                    if(!mapAlasan[d.uid] || d.waktu_input > mapAlasan[d.uid].waktu_input) mapAlasan[d.uid] = d;
+                }
+            });
+            renderRiwayatSelesai();
+        });
+    </script>
+</body>
+</html>
